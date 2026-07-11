@@ -20,7 +20,7 @@ from pydantic import BaseModel
 from backend.config import CONFIG
 from backend.core.llm.answer import answer_question
 from backend.core.retrieval.index import Retriever
-from backend.core.rules.routing import route
+from backend.core.rules.routing import detect_sensitive, route
 from backend.core.store.repo import Store
 from backend.deps import get_retriever, get_store
 from backend.models.ask import AnswerMode, QuestionLog
@@ -69,6 +69,17 @@ def ask(
     store: Store = Depends(get_store),
 ) -> AskResponse:
     question = req.question.strip()
+
+    # Sensitive-topic pre-check runs BEFORE retrieval. Custody/injury/abuse/
+    # staff-complaint/billing-dispute questions have ~zero handbook content
+    # overlap by design, so the retrieval gap-gate can't be trusted to let
+    # them through to the model — this deterministic check is the backstop.
+    if detect_sensitive(question):
+        return _log_and_shape(
+            store, question, AnswerMode.ESCALATED, 0.0,
+            answer=_handoff_text(AnswerMode.ESCALATED), sources=[], sensitive=True,
+        )
+
     ordered, max_score = retriever.search(question)
 
     # Gap gate — decided by CODE, before the LLM runs. Sub-threshold means no

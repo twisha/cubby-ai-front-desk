@@ -8,6 +8,44 @@ from __future__ import annotations
 
 from backend.models.ask import AnswerMode, AnswerResponse
 
+# Deterministic pre-check for the SPEC's five sensitive categories: custody /
+# release authorization, injury, abuse or neglect, staff complaints, billing
+# disputes, another family's child. Phrase-scoped (not single words like
+# "father") to avoid false-positiving ordinary logistics questions.
+#
+# WHY THIS EXISTS: these topics by design have ~zero content-word overlap with
+# the handbook (the handbook correctly does not discuss custody), so the
+# retrieval gap-gate scores them near 0 and would otherwise swallow them as
+# GAP before the LLM ever runs to classify sensitive=true. Escalation for
+# these categories must not depend on retrieval succeeding.
+_SENSITIVE_PHRASES: tuple[str, ...] = (
+    # custody / release authorization
+    "custody", "restraining order", "court order",
+    "don't release", "do not release", "won't release", "will not release",
+    "shouldn't release", "not release", "unauthorized pickup",
+    "not authorized to pick up", "not allowed to pick up",
+    # injury / abuse / neglect
+    "injured", "injury", "got hurt", "was hurt", "bruise", "bruising",
+    "abuse", "neglect", "allegation",
+    # staff complaints
+    "complaint about", "file a complaint", "report a staff",
+    "staff member did", "staff mistreated",
+    # billing disputes
+    "billing dispute", "overcharged", "refund dispute",
+    "dispute a charge", "wrongly charged",
+    # another family's child
+    "another child", "someone else's child", "another family's child",
+    "other parent's child",
+)
+
+
+def detect_sensitive(question: str) -> bool:
+    """Deterministic keyword pre-check — runs BEFORE retrieval, not an LLM
+    classification. See _SENSITIVE_PHRASES for why this must be code, not
+    dependent on the gap gate or the model seeing the question at all."""
+    q = question.lower()
+    return any(phrase in q for phrase in _SENSITIVE_PHRASES)
+
 
 def route(resp: AnswerResponse) -> AnswerMode:
     """Map an AnswerResponse to a UI mode. Order matters — first match wins.
