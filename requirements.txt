@@ -4,6 +4,7 @@ uvicorn[standard]>=0.30
 pydantic>=2.7
 python-multipart>=0.0.9        # multipart form uploads for /validate-form
 anthropic>=0.40                # Claude API (haiku chat, sonnet vision/judge)
+langsmith>=0.10                # observability tracing (env-gated: LANGSMITH_API_KEY)
 
 # Retrieval — added in milestone M1 (kept out of M0 so the app boots with no ML deps):
 # sentence-transformers>=2.7

@@ -37,6 +37,11 @@ class Config:
     # --- Async sampled runtime judging ---
     judge_sample_rate: float = float(os.getenv("JUDGE_SAMPLE_RATE", "0.33"))
 
+    # --- Observability (optional). Presence of the key alone is the toggle —
+    # core/llm/client.py sets LANGSMITH_TRACING itself; nothing else to set.
+    langsmith_api_key: str = os.getenv("LANGSMITH_API_KEY", "")
+    langsmith_project: str = os.getenv("LANGSMITH_PROJECT", "cubby-ai-front-desk")
+
     # --- Center identity (per-tenant in production; seeded here) ---
     center_name: str = "Willow Grove Early Learning"
     center_town: str = "Wissahocken, PA"
