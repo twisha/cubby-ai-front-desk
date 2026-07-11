@@ -10,6 +10,7 @@ from typing import Protocol
 from backend.data.seed_questions import seed_questions
 from backend.data.seed_roster import seed_children
 from backend.models.ask import QuestionLog
+from backend.models.auth import VisitorLogEntry
 from backend.models.roster import Child
 
 
@@ -20,12 +21,15 @@ class Store(Protocol):
     def match_child_by_name(self, name: str) -> Child | None: ...
     def list_questions(self) -> list[QuestionLog]: ...
     def add_question(self, q: QuestionLog) -> None: ...
+    def add_visitor(self, entry: VisitorLogEntry) -> None: ...
+    def list_visitors(self) -> list[VisitorLogEntry]: ...
 
 
 class InMemoryStore:
     def __init__(self) -> None:
         self._children: dict[str, Child] = {c.id: c for c in seed_children()}
         self._questions: list[QuestionLog] = list(seed_questions())
+        self._visitors: list[VisitorLogEntry] = []
 
     # --- roster ---
     def list_children(self) -> list[Child]:
@@ -55,3 +59,10 @@ class InMemoryStore:
 
     def add_question(self, q: QuestionLog) -> None:
         self._questions.append(q)
+
+    # --- access-gate visitor log ---
+    def add_visitor(self, entry: VisitorLogEntry) -> None:
+        self._visitors.append(entry)
+
+    def list_visitors(self) -> list[VisitorLogEntry]:
+        return list(self._visitors)

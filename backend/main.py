@@ -10,15 +10,18 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.config import CONFIG
 from backend.core.retrieval.chunker import chunk_handbook
 from backend.core.retrieval.index import KeywordRetriever
+from backend.core.security.auth import require_auth
+from backend.core.security.cost_guard import enforce_cost_limits
 from backend.core.store.repo import InMemoryStore
 from backend.routers import ask as ask_router
+from backend.routers import auth as auth_router
 from backend.routers import compliance as compliance_router
 from backend.routers import forms as forms_router
 
@@ -35,9 +38,22 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Cubby — AI Front Desk", lifespan=lifespan)
-app.include_router(ask_router.router)
-app.include_router(compliance_router.router)
-app.include_router(forms_router.router)
+
+# Access gate: enforced server-side via require_auth on every guarded router
+# below — never client-side-only. Unguarded: /api/auth (the entry point) and
+# /api/health (non-sensitive; platform health checks need it open). Cost
+# guard: only the two LLM-calling routers pay the daily/per-minute caps —
+# /compliance is pure CRUD and costs nothing to call.
+app.include_router(auth_router.router)
+app.include_router(
+    ask_router.router,
+    dependencies=[Depends(require_auth), Depends(enforce_cost_limits)],
+)
+app.include_router(compliance_router.router, dependencies=[Depends(require_auth)])
+app.include_router(
+    forms_router.router,
+    dependencies=[Depends(require_auth), Depends(enforce_cost_limits)],
+)
 
 
 @app.get("/api/health")

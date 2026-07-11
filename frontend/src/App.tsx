@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import AccessGate from "./AccessGate";
+import { checkAuthStatus } from "./api";
 import Chat from "./parent/Chat";
 import ReminderCard from "./parent/ReminderCard";
 import Dashboard from "./operator/Dashboard";
@@ -12,6 +14,28 @@ export default function App() {
   // Bumped on an accepted scan so <Dashboard key=...> remounts and refetches
   // without needing a tab switch -- ScanForm and Dashboard share one view.
   const [dashboardKey, setDashboardKey] = useState(0);
+
+  // null = checking; false = show the gate; true = render the app. The
+  // probe itself no-ops server-side when no ACCESS_CODE is configured, so
+  // local dev never sees this screen.
+  const [authed, setAuthed] = useState<boolean | null>(null);
+  useEffect(() => {
+    checkAuthStatus().then(setAuthed);
+  }, []);
+
+  if (authed === null) {
+    return (
+      <div
+        className="flex-1 flex items-center justify-center text-sm"
+        style={{ color: "var(--cubby-text-muted)", backgroundColor: "var(--cubby-cream)" }}
+      >
+        Loading…
+      </div>
+    );
+  }
+  if (authed === false) {
+    return <AccessGate onSuccess={() => setAuthed(true)} />;
+  }
 
   return (
     <>

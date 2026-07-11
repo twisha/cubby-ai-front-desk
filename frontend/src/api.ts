@@ -121,3 +121,23 @@ export async function validateForm(file: File): Promise<ValidationResult> {
   }
   return res.json();
 }
+
+// --- Access gate (mirrors backend/models/auth.py) ---
+
+/** True if already authed (or no gate is configured); false -> show AccessGate. */
+export async function checkAuthStatus(): Promise<boolean> {
+  const res = await fetch("/api/auth/status");
+  return res.ok;
+}
+
+export async function login(email: string, code: string): Promise<void> {
+  const res = await fetch("/api/auth", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email, code }),
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => null);
+    throw new Error(detail?.detail ?? "That code doesn't match.");
+  }
+}
