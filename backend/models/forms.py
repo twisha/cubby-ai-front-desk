@@ -24,6 +24,16 @@ class HealthFormExtraction(BaseModel):
     examiner_signature_present: bool
     parent_signature_present: bool
     immunizations_section_completed: bool
+    # DELIBERATE EXTENSION beyond the spec's literal field list: whether the
+    # "has the child received all age-appropriate screenings currently
+    # recommended by the AAP" box is checked YES. Not the same thing as
+    # immunizations_section_completed (that's the vaccine-date table). Added
+    # because the provided attestation-NO fixture is otherwise byte-for-byte
+    # identical to the valid one (same signatures, same date, same
+    # credential) — without this field the validator has no way to
+    # distinguish them, even though catching "attestation checked NO" is
+    # explicitly named as a required fixture case.
+    screenings_up_to_date: bool | None
     notes: str | None                     # anything ambiguous/illegible
 
 

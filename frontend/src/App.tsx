@@ -2,12 +2,16 @@ import { useState } from "react";
 import Chat from "./parent/Chat";
 import ReminderCard from "./parent/ReminderCard";
 import Dashboard from "./operator/Dashboard";
+import ScanForm from "./operator/ScanForm";
 import ThemeToggle from "./ThemeToggle";
 
 type Tab = "parent" | "operator";
 
 export default function App() {
   const [tab, setTab] = useState<Tab>("parent");
+  // Bumped on an accepted scan so <Dashboard key=...> remounts and refetches
+  // without needing a tab switch -- ScanForm and Dashboard share one view.
+  const [dashboardKey, setDashboardKey] = useState(0);
 
   return (
     <>
@@ -43,7 +47,10 @@ export default function App() {
             <ReminderCard />
           </>
         ) : (
-          <Dashboard />
+          <>
+            <ScanForm onAccepted={() => setDashboardKey((k) => k + 1)} />
+            <Dashboard key={dashboardKey} />
+          </>
         )}
       </main>
     </>

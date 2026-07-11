@@ -96,3 +96,28 @@ export async function acknowledge(
   if (!res.ok) throw new Error(`Request failed (${res.status})`);
   return res.json();
 }
+
+// --- Health-form validation (mirrors backend/models/forms.py) ---
+
+export interface ValidationIssue {
+  field: string;
+  problem: string;
+  fix: string;
+}
+
+export interface ValidationResult {
+  status: "accepted" | "rejected" | "needs_review";
+  issues: ValidationIssue[];
+  next_due_date: string | null;
+}
+
+export async function validateForm(file: File): Promise<ValidationResult> {
+  const body = new FormData();
+  body.append("photo", file);
+  const res = await fetch("/api/validate-form", { method: "POST", body });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => null);
+    throw new Error(detail?.detail ?? `Request failed (${res.status})`);
+  }
+  return res.json();
+}

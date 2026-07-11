@@ -47,7 +47,9 @@ def cycle_months(dob: date, on_date: date) -> int:
     return 6 if _age_years(dob, on_date) < 2 else 12
 
 
-def _add_months(d: date, months: int) -> date:
+def add_months(d: date, months: int) -> date:
+    """Public: shared by scheduler.py and validation.py (a form's exam date +
+    cycle_months determines whether it's still current)."""
     month_index = d.month - 1 + months
     year = d.year + month_index // 12
     month = month_index % 12 + 1
@@ -58,7 +60,7 @@ def _add_months(d: date, months: int) -> date:
 def next_due_date(last_exam_date: date | None, dob: date, today: date) -> date | None:
     if last_exam_date is None:
         return None
-    return _add_months(last_exam_date, cycle_months(dob, today))
+    return add_months(last_exam_date, cycle_months(dob, today))
 
 
 def tier_for(child: Child, next_due: date | None, today: date) -> ReminderTier:

@@ -20,6 +20,7 @@ from backend.core.retrieval.index import KeywordRetriever
 from backend.core.store.repo import InMemoryStore
 from backend.routers import ask as ask_router
 from backend.routers import compliance as compliance_router
+from backend.routers import forms as forms_router
 
 _DIST = Path(__file__).resolve().parents[1] / "frontend" / "dist"
 
@@ -36,6 +37,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Cubby — AI Front Desk", lifespan=lifespan)
 app.include_router(ask_router.router)
 app.include_router(compliance_router.router)
+app.include_router(forms_router.router)
 
 
 @app.get("/api/health")
