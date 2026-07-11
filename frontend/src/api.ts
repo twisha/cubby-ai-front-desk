@@ -43,3 +43,56 @@ export async function askQuestion(question: string): Promise<AskResponse> {
   }
   return res.json();
 }
+
+// --- Compliance / roster (mirrors backend/models/roster.py + routers/compliance.py) ---
+
+export type ParentState =
+  | "compliant"
+  | "due_soon_acknowledged"
+  | "due_soon_unresponsive"
+  | "overdue";
+
+export type ReminderTier =
+  | "compliant"
+  | "gentle"
+  | "standard"
+  | "urgent"
+  | "overdue"
+  | "paused"
+  | "grace_requested";
+
+export interface Child {
+  id: string;
+  name: string;
+  dob: string;
+  last_exam_date: string | null;
+  parent_state: ParentState;
+  acknowledged_appt_date: string | null;
+}
+
+export interface ComplianceRow {
+  child: Child;
+  cycle_months: number;
+  next_due_date: string | null;
+  tier: ReminderTier;
+  days_until_due: number | null;
+}
+
+export async function getCompliance(): Promise<ComplianceRow[]> {
+  const res = await fetch("/api/compliance");
+  if (!res.ok) throw new Error(`Request failed (${res.status})`);
+  return res.json();
+}
+
+export async function acknowledge(
+  childId: string,
+  apptDate: string,
+): Promise<ComplianceRow> {
+  const res = await fetch("/api/acknowledge", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ child_id: childId, appt_date: apptDate }),
+  });
+  if (!res.ok) throw new Error(`Request failed (${res.status})`);
+  return res.json();
+}

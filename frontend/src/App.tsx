@@ -1,5 +1,7 @@
 import { useState } from "react";
 import Chat from "./parent/Chat";
+import ReminderCard from "./parent/ReminderCard";
+import Dashboard from "./operator/Dashboard";
 import ThemeToggle from "./ThemeToggle";
 
 type Tab = "parent" | "operator";
@@ -35,7 +37,14 @@ export default function App() {
       </nav>
 
       <main className="flex-1 px-4 py-4">
-        {tab === "parent" ? <Chat /> : <OperatorPlaceholder />}
+        {tab === "parent" ? (
+          <>
+            <Chat />
+            <ReminderCard />
+          </>
+        ) : (
+          <Dashboard />
+        )}
       </main>
     </>
   );
@@ -62,18 +71,5 @@ function TabButton({
     >
       {children}
     </button>
-  );
-}
-
-function OperatorPlaceholder() {
-  return (
-    <div
-      className="rounded-2xl p-5 shadow-sm text-sm"
-      style={{ backgroundColor: "var(--cubby-surface)", color: "var(--cubby-text-muted)" }}
-    >
-      <b style={{ color: "var(--cubby-text)" }}>Operator tab</b> — health form
-      scan, compliance dashboard, and the questions &amp; gaps log arrive in
-      M0.2–M0.4.
-    </div>
   );
 }

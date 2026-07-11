@@ -15,8 +15,13 @@
   --cubby-teal: #0f766e;          /* header, user bubble, brand */
   --cubby-coral: #f97362;         /* accent, active tab, CTA */
 
-  --cubby-amber: #b45309;         /* judgment banner text */
+  --cubby-amber: #b45309;         /* judgment banner text; due-soon chips */
   --cubby-amber-bg: #fef3c7;      /* judgment banner background */
+
+  --cubby-green: #15803d;         /* compliant chip */
+  --cubby-green-bg: #dcfce7;
+  --cubby-red: #b91c1c;           /* overdue chip */
+  --cubby-red-bg: #fee2e2;
 
   --cubby-escalated-bg: #fff5f3;  /* escalated/gap handoff card */
   --cubby-escalated-border: #f97362;
@@ -43,6 +48,11 @@
     --cubby-amber: #fbbf24;
     --cubby-amber-bg: #422e0a;
 
+    --cubby-green: #4ade80;
+    --cubby-green-bg: #14320f;
+    --cubby-red: #f87171;
+    --cubby-red-bg: #3f1616;
+
     --cubby-escalated-bg: #3a2320;
     --cubby-escalated-border: #fb8a72;
 
@@ -66,6 +76,10 @@
   --cubby-coral: #fb8a72;
   --cubby-amber: #fbbf24;
   --cubby-amber-bg: #422e0a;
+  --cubby-green: #4ade80;
+  --cubby-green-bg: #14320f;
+  --cubby-red: #f87171;
+  --cubby-red-bg: #3f1616;
   --cubby-escalated-bg: #3a2320;
   --cubby-escalated-border: #fb8a72;
   --cubby-error-bg: #3a1e1e;
@@ -85,6 +99,10 @@
   --cubby-coral: #f97362;
   --cubby-amber: #b45309;
   --cubby-amber-bg: #fef3c7;
+  --cubby-green: #15803d;
+  --cubby-green-bg: #dcfce7;
+  --cubby-red: #b91c1c;
+  --cubby-red-bg: #fee2e2;
   --cubby-escalated-bg: #fff5f3;
   --cubby-escalated-border: #f97362;
   --cubby-error-bg: #fef2f2;
