@@ -50,8 +50,8 @@ export default function Chat() {
             <button
               key={chip}
               onClick={() => send(chip)}
-              className="text-sm rounded-full px-3 py-2 bg-white shadow-sm text-left"
-              style={{ color: "var(--cubby-ink)" }}
+              className="text-sm rounded-full px-3 py-2 shadow-sm text-left"
+              style={{ backgroundColor: "var(--cubby-surface)", color: "var(--cubby-text)" }}
             >
               {chip}
             </button>
@@ -62,19 +62,32 @@ export default function Chat() {
       <div className="flex flex-col gap-3">
         {turns.map((turn, i) => (
           <div key={i} className="flex flex-col gap-1.5">
-            <div className="self-end max-w-[85%] rounded-2xl rounded-br-sm bg-[#0f766e] text-white px-3.5 py-2.5 text-[15px]">
+            <div
+              className="self-end max-w-[85%] rounded-2xl rounded-br-sm text-white px-3.5 py-2.5 text-[15px]"
+              style={{ backgroundColor: "var(--cubby-teal)" }}
+            >
               {turn.question}
             </div>
             {turn.response && <AnswerBubble response={turn.response} />}
             {turn.error && (
-              <div className="rounded-2xl bg-red-50 border border-red-200 p-3 text-sm text-red-800">
+              <div
+                className="rounded-2xl border p-3 text-sm"
+                style={{
+                  backgroundColor: "var(--cubby-error-bg)",
+                  borderColor: "var(--cubby-error-border)",
+                  color: "var(--cubby-error-text)",
+                }}
+              >
                 {turn.error}
               </div>
             )}
           </div>
         ))}
         {loading && (
-          <div className="rounded-2xl bg-white p-3.5 shadow-sm text-sm text-[#26333a]/60">
+          <div
+            className="rounded-2xl p-3.5 shadow-sm text-sm"
+            style={{ backgroundColor: "var(--cubby-surface)", color: "var(--cubby-text-muted)" }}
+          >
             Cubby is checking the handbook…
           </div>
         )}
@@ -91,7 +104,8 @@ export default function Chat() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask a question…"
-          className="flex-1 rounded-full bg-white px-4 py-2.5 text-[15px] shadow-sm outline-none"
+          className="flex-1 rounded-full px-4 py-2.5 text-[15px] shadow-sm outline-none"
+          style={{ backgroundColor: "var(--cubby-surface)", color: "var(--cubby-text)" }}
         />
         <button
           type="submit"

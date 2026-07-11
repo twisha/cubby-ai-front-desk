@@ -10,8 +10,10 @@ export default function AnswerBubble({ response }: { response: AskResponse }) {
   switch (response.mode) {
     case "grounded":
       return (
-        <div className="rounded-2xl bg-white p-3.5 shadow-sm">
-          <p className="m-0 text-[15px] leading-snug">{response.answer}</p>
+        <div className="rounded-2xl p-3.5 shadow-sm" style={{ backgroundColor: "var(--cubby-surface)" }}>
+          <p className="m-0 text-[15px] leading-snug" style={{ color: "var(--cubby-text)" }}>
+            {response.answer}
+          </p>
           {response.sources.length > 0 && (
             <div className="mt-2.5">
               {response.sources.map((s) => (
@@ -24,8 +26,10 @@ export default function AnswerBubble({ response }: { response: AskResponse }) {
 
     case "judgment":
       return (
-        <div className="rounded-2xl bg-white p-3.5 shadow-sm">
-          <p className="m-0 text-[15px] leading-snug">{response.answer}</p>
+        <div className="rounded-2xl p-3.5 shadow-sm" style={{ backgroundColor: "var(--cubby-surface)" }}>
+          <p className="m-0 text-[15px] leading-snug" style={{ color: "var(--cubby-text)" }}>
+            {response.answer}
+          </p>
           {response.sources.length > 0 && (
             <div className="mt-2.5">
               {response.sources.map((s) => (
@@ -47,9 +51,12 @@ export default function AnswerBubble({ response }: { response: AskResponse }) {
       return (
         <div
           className="rounded-2xl p-3.5 border"
-          style={{ backgroundColor: "#fff5f3", borderColor: "var(--cubby-coral)" }}
+          style={{
+            backgroundColor: "var(--cubby-escalated-bg)",
+            borderColor: "var(--cubby-escalated-border)",
+          }}
         >
-          <p className="m-0 text-[15px] leading-snug" style={{ color: "var(--cubby-ink)" }}>
+          <p className="m-0 text-[15px] leading-snug" style={{ color: "var(--cubby-text)" }}>
             💌 {response.answer}
           </p>
         </div>

@@ -5,6 +5,17 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=375, initial-scale=1.0" />
     <title>Cubby — Willow Grove Early Learning</title>
+    <script>
+      // Blocking, pre-React: apply a saved theme choice before first paint so
+      // there's no flash of the wrong theme. No saved choice -> CSS's
+      // prefers-color-scheme media query decides (see index.css).
+      (function () {
+        var saved = localStorage.getItem("cubby-theme");
+        if (saved === "light" || saved === "dark") {
+          document.documentElement.setAttribute("data-theme", saved);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

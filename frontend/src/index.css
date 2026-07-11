@@ -1,20 +1,104 @@
 @import "tailwindcss";
 
-/* Warm, rounded, friendly — matches the M0.0 placeholder palette. */
+/* Warm, rounded, friendly. Light values are the defaults; dark values
+ * override via prefers-color-scheme (system) and [data-theme] (manual
+ * toggle, wins over system — see ThemeToggle.tsx). Components must reference
+ * these variables, never hardcode a hex, so both themes stay correct. */
 :root {
+  --cubby-cream: #fdf6f0;         /* page background */
+  --cubby-surface: #ffffff;       /* cards */
+  --cubby-surface-2: #f2e7de;     /* chips, nav-inactive, secondary surfaces */
+  --cubby-border: #eadfd6;
+  --cubby-text: #26333a;          /* primary text */
+  --cubby-text-muted: #6b7680;
+
+  --cubby-teal: #0f766e;          /* header, user bubble, brand */
+  --cubby-coral: #f97362;         /* accent, active tab, CTA */
+
+  --cubby-amber: #b45309;         /* judgment banner text */
+  --cubby-amber-bg: #fef3c7;      /* judgment banner background */
+
+  --cubby-escalated-bg: #fff5f3;  /* escalated/gap handoff card */
+  --cubby-escalated-border: #f97362;
+
+  --cubby-error-bg: #fef2f2;
+  --cubby-error-border: #fecaca;
+  --cubby-error-text: #991b1b;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cubby-cream: #171f1e;
+    --cubby-surface: #232d2c;
+    --cubby-surface-2: #2c3736;
+    --cubby-border: #384443;
+    --cubby-text: #eef1f0;
+    --cubby-text-muted: #9aa6a4;
+
+    --cubby-teal: #2dd4bf;
+    --cubby-coral: #fb8a72;
+
+    --cubby-amber: #fbbf24;
+    --cubby-amber-bg: #422e0a;
+
+    --cubby-escalated-bg: #3a2320;
+    --cubby-escalated-border: #fb8a72;
+
+    --cubby-error-bg: #3a1e1e;
+    --cubby-error-border: #7f1d1d;
+    --cubby-error-text: #fca5a5;
+
+    color-scheme: dark;
+  }
+}
+
+/* Manual toggle wins over system preference in either direction. */
+:root[data-theme="dark"] {
+  --cubby-cream: #171f1e;
+  --cubby-surface: #232d2c;
+  --cubby-surface-2: #2c3736;
+  --cubby-border: #384443;
+  --cubby-text: #eef1f0;
+  --cubby-text-muted: #9aa6a4;
+  --cubby-teal: #2dd4bf;
+  --cubby-coral: #fb8a72;
+  --cubby-amber: #fbbf24;
+  --cubby-amber-bg: #422e0a;
+  --cubby-escalated-bg: #3a2320;
+  --cubby-escalated-border: #fb8a72;
+  --cubby-error-bg: #3a1e1e;
+  --cubby-error-border: #7f1d1d;
+  --cubby-error-text: #fca5a5;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
   --cubby-cream: #fdf6f0;
+  --cubby-surface: #ffffff;
+  --cubby-surface-2: #f2e7de;
+  --cubby-border: #eadfd6;
+  --cubby-text: #26333a;
+  --cubby-text-muted: #6b7680;
   --cubby-teal: #0f766e;
   --cubby-coral: #f97362;
-  --cubby-ink: #26333a;
   --cubby-amber: #b45309;
   --cubby-amber-bg: #fef3c7;
+  --cubby-escalated-bg: #fff5f3;
+  --cubby-escalated-border: #f97362;
+  --cubby-error-bg: #fef2f2;
+  --cubby-error-border: #fecaca;
+  --cubby-error-text: #991b1b;
+  color-scheme: light;
 }
 
 body {
   margin: 0;
   background: var(--cubby-cream);
-  color: var(--cubby-ink);
+  color: var(--cubby-text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 #root {

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Chat from "./parent/Chat";
+import ThemeToggle from "./ThemeToggle";
 
 type Tab = "parent" | "operator";
 
@@ -9,16 +10,22 @@ export default function App() {
   return (
     <>
       <header
-        className="px-5 py-4 text-white"
+        className="px-5 py-4 text-white flex items-start justify-between"
         style={{ backgroundColor: "var(--cubby-teal)" }}
       >
-        <h1 className="m-0 text-xl font-bold">🧸 Cubby</h1>
-        <p className="m-0 mt-1 text-sm opacity-85">
-          Willow Grove Early Learning · Wissahocken, PA
-        </p>
+        <div>
+          <h1 className="m-0 text-xl font-bold">🧸 Cubby</h1>
+          <p className="m-0 mt-1 text-sm opacity-85">
+            Willow Grove Early Learning · Wissahocken, PA
+          </p>
+        </div>
+        <ThemeToggle />
       </header>
 
-      <nav className="flex gap-2 px-5 py-3 bg-white border-b border-[#eadfd6]">
+      <nav
+        className="flex gap-2 px-5 py-3 border-b"
+        style={{ backgroundColor: "var(--cubby-surface)", borderColor: "var(--cubby-border)" }}
+      >
         <TabButton active={tab === "parent"} onClick={() => setTab("parent")}>
           Parent
         </TabButton>
@@ -46,10 +53,12 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`flex-1 rounded-xl py-2.5 font-semibold transition-colors ${
-        active ? "text-white" : "bg-[#f2e7de] text-[#26333a]"
-      }`}
-      style={active ? { backgroundColor: "var(--cubby-coral)" } : undefined}
+      className="flex-1 rounded-xl py-2.5 font-semibold transition-colors"
+      style={
+        active
+          ? { backgroundColor: "var(--cubby-coral)", color: "white" }
+          : { backgroundColor: "var(--cubby-surface-2)", color: "var(--cubby-text)" }
+      }
     >
       {children}
     </button>
@@ -58,9 +67,13 @@ function TabButton({
 
 function OperatorPlaceholder() {
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-sm text-sm text-[#26333a]/80">
-      <b>Operator tab</b> — health form scan, compliance dashboard, and the
-      questions &amp; gaps log arrive in M0.2–M0.4.
+    <div
+      className="rounded-2xl p-5 shadow-sm text-sm"
+      style={{ backgroundColor: "var(--cubby-surface)", color: "var(--cubby-text-muted)" }}
+    >
+      <b style={{ color: "var(--cubby-text)" }}>Operator tab</b> — health form
+      scan, compliance dashboard, and the questions &amp; gaps log arrive in
+      M0.2–M0.4.
     </div>
   );
 }

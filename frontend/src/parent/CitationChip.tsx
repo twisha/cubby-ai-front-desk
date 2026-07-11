@@ -20,7 +20,10 @@ export default function CitationChip({ source }: { source: Source }) {
         Parent Handbook → {source.title}
       </button>
       {open && (
-        <div className="mt-1 max-w-xs text-xs leading-snug rounded-lg bg-[#f2e7de] p-2.5 text-[#26333a]">
+        <div
+          className="mt-1 max-w-xs text-xs leading-snug rounded-lg p-2.5"
+          style={{ backgroundColor: "var(--cubby-surface-2)", color: "var(--cubby-text)" }}
+        >
           {source.content}
         </div>
       )}
