@@ -60,6 +60,10 @@ Please send two labeled changes of clothes, diapers and wipes if applicable, a w
 category: health
 From April through October, please send a labeled bottle of SPF 30+ sunscreen with a signed authorization form (the same form used for medication). Staff apply sunscreen before outdoor play, and reapply after water activities. We also encourage a labeled sun hat. Children with a sunscreen allergy need a note from a physician.
 
+## vacation
+category: billing
+Each enrolled child gets one tuition-free vacation week per calendar year. To use it, give at least two weeks' written notice, and the time off must be a full week — Monday through Friday. Partial weeks do not qualify for the credit.
+
 ## withdrawal
 category: billing
 Two weeks' written notice is required for withdrawal or schedule changes. The deposit is forfeited otherwise.
