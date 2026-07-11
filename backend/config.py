@@ -37,9 +37,10 @@ class Config:
     # --- Async sampled runtime judging ---
     judge_sample_rate: float = float(os.getenv("JUDGE_SAMPLE_RATE", "0.33"))
 
-    # --- Center identity ---
+    # --- Center identity (per-tenant in production; seeded here) ---
     center_name: str = "Willow Grove Early Learning"
     center_town: str = "Wissahocken, PA"
+    director_name: str = "Ms. Rivera"
 
 
 CONFIG = Config()
