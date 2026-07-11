@@ -96,6 +96,15 @@ def ask(
         ar = answer_question(question, ordered)
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e)) from e
+
+    # Groundedness enforced in CODE, not just requested in the prompt: the
+    # model's claimed citations are validated against the actual handbook
+    # BEFORE routing. A hallucinated source id must not buy a GROUNDED badge —
+    # if nothing real survives the filter, route() sees empty source_ids and
+    # downgrades to GAP (answer discarded, human handoff instead).
+    by_id = {e.id: e for e in ordered}
+    ar.source_ids = [sid for sid in ar.source_ids if sid in by_id]
+
     mode = route(ar)
 
     if mode in (AnswerMode.GAP, AnswerMode.ESCALATED):
@@ -103,7 +112,6 @@ def ask(
         sources: list[Source] = []
     else:  # GROUNDED or JUDGMENT — show the answer + cited sections
         answer = ar.answer
-        by_id = {e.id: e for e in ordered}
         sources = [
             Source(id=e.id, title=e.title, content=e.content)
             for sid in ar.source_ids
