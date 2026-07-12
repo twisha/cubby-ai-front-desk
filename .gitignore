@@ -25,3 +25,6 @@ backend/data/frontdesk.db
 .DS_Store
 .vscode/
 .idea/
+
+# --- Local-only notes ---
+DEMO.md
