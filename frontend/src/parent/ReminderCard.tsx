@@ -84,7 +84,7 @@ export default function ReminderCard() {
           style={{ backgroundColor: "var(--cubby-amber-bg)", color: "var(--cubby-amber)" }}
         >
           ⏳ Appointment noted for {formatDate(child.acknowledged_appt_date!)} — since
-          that's after the due date, Ms. Rivera will confirm it's okay.
+          that's after the due date, Ms. Donnelly will confirm it's okay.
         </div>
       )}
 

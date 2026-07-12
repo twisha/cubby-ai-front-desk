@@ -41,7 +41,7 @@ export default function AnswerBubble({ response }: { response: AskResponse }) {
             className="mt-2.5 rounded-lg px-3 py-2 text-xs font-semibold"
             style={{ backgroundColor: "var(--cubby-amber-bg)", color: "var(--cubby-amber)" }}
           >
-            ⚠ Flagged for Ms. Rivera — typical reply &lt; 15 min
+            ⚠ Flagged for Ms. Donnelly — typical reply &lt; 15 min
           </div>
         </div>
       );

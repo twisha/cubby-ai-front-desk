@@ -45,7 +45,7 @@ class Config:
     # --- Center identity (per-tenant in production; seeded here) ---
     center_name: str = "Willow Grove Early Learning"
     center_town: str = "Wissahocken, PA"
-    director_name: str = "Ms. Rivera"
+    director_name: str = "Ms. Donnelly"
 
 
 CONFIG = Config()

@@ -47,7 +47,7 @@ def seed_questions() -> list[QuestionLog]:
         QuestionLog(id="q08", ts=_ago(155),
                     text="He felt warm this morning, is that okay for drop-off?",
                     mode=AnswerMode.JUDGMENT, max_cosine=0.55, source_ids=["illness-policy"],
-                    answer="Our policy requires 24 hours fever-free without medication. Ms. Rivera "
+                    answer="Our policy requires 24 hours fever-free without medication. Ms. Donnelly "
                            "will follow up."),
         # --- ESCALATED (sensitive; no AI answer) ---
         QuestionLog(id="q09", ts=_ago(180),
