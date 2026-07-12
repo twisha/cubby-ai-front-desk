@@ -60,7 +60,11 @@ class BatchScanItem(BaseModel):
 class FlaggedForm(BaseModel):
     """A rejected/needs_review scan, persisted so it surfaces on the
     Dashboard instead of disappearing once the upload card is dismissed —
-    the operator's job is to watch the dashboard, not babysit each scan."""
+    the operator's job is to watch the dashboard, not babysit each scan.
+
+    Carries the raw extraction so an unmatched scan can be resolved by
+    picking the right child from the roster (POST .../assign) and
+    re-validating against the SAME extracted data — no re-scan needed."""
     id: str
     child_id: str | None                  # None if the name didn't match anyone
     child_name: str | None
@@ -69,3 +73,4 @@ class FlaggedForm(BaseModel):
     issues: list[ValidationIssue]
     scanned_at: datetime
     notified_at: datetime | None = None
+    extraction: HealthFormExtraction

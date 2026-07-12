@@ -27,6 +27,8 @@ class Store(Protocol):
     def list_visitors(self) -> list[VisitorLogEntry]: ...
     def add_flagged_form(self, f: FlaggedForm) -> None: ...
     def list_flagged_forms(self) -> list[FlaggedForm]: ...
+    def get_flagged_form(self, flag_id: str) -> FlaggedForm | None: ...
+    def remove_flagged_form(self, flag_id: str) -> None: ...
     def mark_notified(self, flag_id: str, ts: datetime) -> FlaggedForm | None: ...
 
 
@@ -79,6 +81,12 @@ class InMemoryStore:
 
     def list_flagged_forms(self) -> list[FlaggedForm]:
         return sorted(self._flagged.values(), key=lambda f: f.scanned_at, reverse=True)
+
+    def get_flagged_form(self, flag_id: str) -> FlaggedForm | None:
+        return self._flagged.get(flag_id)
+
+    def remove_flagged_form(self, flag_id: str) -> None:
+        self._flagged.pop(flag_id, None)
 
     def mark_notified(self, flag_id: str, ts: datetime) -> FlaggedForm | None:
         f = self._flagged.get(flag_id)

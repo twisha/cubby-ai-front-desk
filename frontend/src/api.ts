@@ -181,6 +181,27 @@ export async function notifyParent(flagId: string): Promise<FlaggedForm> {
   return res.json();
 }
 
+export interface AssignResult {
+  resolved: boolean;
+  flagged: FlaggedForm | null;
+  next_due_date: string | null;
+}
+
+/** Resolve an unmatched scan by picking the right child -- re-validates the
+ * same extracted data server-side, no re-scan needed. */
+export async function assignChild(flagId: string, childId: string): Promise<AssignResult> {
+  const res = await fetch(`/api/flagged-forms/${flagId}/assign`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ child_id: childId }),
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => null);
+    throw new Error(detail?.detail ?? `Request failed (${res.status})`);
+  }
+  return res.json();
+}
+
 // --- Access gate (mirrors backend/models/auth.py) ---
 
 /** True if already authed (or no gate is configured); false -> show AccessGate. */

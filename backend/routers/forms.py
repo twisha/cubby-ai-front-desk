@@ -13,6 +13,7 @@ import uuid
 from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+from pydantic import BaseModel
 
 from backend.core.llm.extract import extract_form
 from backend.core.rules.validation import validate
@@ -82,6 +83,7 @@ async def validate_form(
                 status=result.status,
                 issues=result.issues,
                 scanned_at=datetime.now(timezone.utc),
+                extraction=extraction,
             ))
 
         items.append(BatchScanItem(
@@ -116,3 +118,53 @@ def notify_parent(flag_id: str, store: Store = Depends(get_store)) -> FlaggedFor
     if updated is None:
         raise HTTPException(status_code=404, detail="Flagged form not found")
     return updated
+
+
+class AssignRequest(BaseModel):
+    child_id: str
+
+
+class AssignResult(BaseModel):
+    resolved: bool                 # True -> accepted, roster updated, gone from the queue
+    flagged: FlaggedForm | None    # the updated entry, if still flagged
+    next_due_date: date | None = None
+
+
+@router.post("/flagged-forms/{flag_id}/assign", response_model=AssignResult)
+def assign_child(
+    flag_id: str, req: AssignRequest, store: Store = Depends(get_store)
+) -> AssignResult:
+    """Resolve an unmatched scan (illegible/unrecognized name) by picking the
+    right child from the roster -- re-validates the SAME extracted data now
+    that the child is known, no re-scan needed. Mirrors validate_form's
+    accept/flag branching exactly, just entered from a different starting
+    point (a known extraction + a manually-supplied child instead of a fresh
+    photo + name match)."""
+    flagged = store.get_flagged_form(flag_id)
+    if flagged is None:
+        raise HTTPException(status_code=404, detail="Flagged form not found")
+    child = store.get_child(req.child_id)
+    if child is None:
+        raise HTTPException(status_code=404, detail="Child not found")
+
+    result = validate(flagged.extraction, child, date.today())
+
+    if result.status == "accepted":
+        updated_child = child.model_copy(update={
+            "last_exam_date": flagged.extraction.date_of_exam,
+            "parent_state": "compliant",
+            "acknowledged_appt_date": None,
+        })
+        store.upsert_child(updated_child)
+        store.remove_flagged_form(flag_id)
+        return AssignResult(resolved=True, flagged=None, next_due_date=result.next_due_date)
+
+    updated = flagged.model_copy(update={
+        "child_id": child.id,
+        "child_name": child.name,
+        "parent_name": child.parent_name,
+        "status": result.status,
+        "issues": result.issues,
+    })
+    store.add_flagged_form(updated)
+    return AssignResult(resolved=False, flagged=updated)

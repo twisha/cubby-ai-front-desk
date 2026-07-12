@@ -3,8 +3,10 @@ import {
   getCompliance,
   getFlaggedForms,
   notifyParent,
+  assignChild,
   type ComplianceRow,
   type FlaggedForm,
+  type Child,
 } from "../api";
 import { formatDueDate, chipColors, chipLabel } from "../complianceDisplay";
 import GapsPanel from "./GapsPanel";
@@ -17,10 +19,23 @@ function formatTime(iso: string): string {
  * Flagged (rejected/needs_review) scans, persisted server-side so they're
  * still here after the upload card that produced them is gone. This is the
  * operator's actual queue — process forms in bulk elsewhere, then work the
- * list here: read the issue, notify the parent, done.
+ * list here: read the issue, notify the parent, done. An unmatched scan
+ * (illegible/unrecognized name) gets a child picker instead of a notify
+ * button — assigning re-validates the same extracted data server-side
+ * against the picked child, no re-scan needed.
  */
-function NeedsAttention({ items, onChange }: { items: FlaggedForm[]; onChange: () => void }) {
+function NeedsAttention({
+  items,
+  roster,
+  onChange,
+}: {
+  items: FlaggedForm[];
+  roster: Child[];
+  onChange: () => void;
+}) {
   const [notifying, setNotifying] = useState<string | null>(null);
+  const [picked, setPicked] = useState<Record<string, string>>({});
+  const [assigning, setAssigning] = useState<string | null>(null);
 
   if (items.length === 0) return null;
 
@@ -31,6 +46,18 @@ function NeedsAttention({ items, onChange }: { items: FlaggedForm[]; onChange: (
       onChange();
     } finally {
       setNotifying(null);
+    }
+  }
+
+  async function assign(flagId: string) {
+    const childId = picked[flagId];
+    if (!childId) return;
+    setAssigning(flagId);
+    try {
+      await assignChild(flagId, childId);
+      onChange();
+    } finally {
+      setAssigning(null);
     }
   }
 
@@ -77,8 +104,28 @@ function NeedsAttention({ items, onChange }: { items: FlaggedForm[]; onChange: (
               {notifying === f.id ? "Notifying…" : `📣 Notify ${f.parent_name}`}
             </button>
           ) : (
-            <div className="mt-2 text-xs" style={{ color: "var(--cubby-text-muted)" }}>
-              No matching child on the roster — identify manually, then re-scan.
+            <div className="mt-2 flex items-center gap-2">
+              <select
+                value={picked[f.id] ?? ""}
+                onChange={(e) => setPicked((p) => ({ ...p, [f.id]: e.target.value }))}
+                className="rounded-lg px-2 py-1.5 text-xs"
+                style={{ backgroundColor: "var(--cubby-surface)", color: "var(--cubby-text)" }}
+              >
+                <option value="">Assign to child…</option>
+                {roster.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={() => assign(f.id)}
+                disabled={!picked[f.id] || assigning === f.id}
+                className="rounded-full px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
+                style={{ backgroundColor: "var(--cubby-teal)" }}
+              >
+                {assigning === f.id ? "Assigning…" : "Assign"}
+              </button>
             </div>
           )}
         </div>
@@ -116,7 +163,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <NeedsAttention items={flagged} onChange={refetch} />
+      <NeedsAttention items={flagged} roster={rows.map((r) => r.child)} onChange={refetch} />
 
       <div className="flex flex-col gap-2">
         {rows.map((r) => {
