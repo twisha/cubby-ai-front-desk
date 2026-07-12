@@ -98,6 +98,32 @@ export async function acknowledge(
   return res.json();
 }
 
+// --- Gaps panel (mirrors backend/models/ask.py's GapGroup) ---
+
+export type AnswerModeLog = "grounded" | "judgment" | "escalated" | "gap";
+
+export interface QuestionLog {
+  id: string;
+  ts: string;
+  text: string;
+  mode: AnswerModeLog;
+  max_cosine: number;
+  source_ids: string[];
+  answer: string | null;
+}
+
+export interface GapGroup {
+  theme: string;
+  count: number;
+  questions: QuestionLog[];
+}
+
+export async function getGaps(): Promise<GapGroup[]> {
+  const res = await fetch("/api/gaps");
+  if (!res.ok) throw new Error(`Request failed (${res.status})`);
+  return res.json();
+}
+
 // --- Health-form validation (mirrors backend/models/forms.py) ---
 
 export interface ValidationIssue {

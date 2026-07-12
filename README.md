@@ -27,10 +27,13 @@ and imports no Anthropic client. A reviewer can grep to verify the boundary hold
 sensitive questions hand off gracefully to a human) plus a self-explaining health-report
 reminder card with one-tap "we have an appointment" acknowledgment.
 
-**Operator side** — scan a paper health form and get instant accept/reject-with-fix at
-the desk; a compliance dashboard of every child's cycle state sorted by urgency; and a
-questions-and-gaps log where the questions Cubby couldn't answer become new handbook
-sections (the draft → approve flywheel).
+**Operator side** — a dashboard-first view: a compliance roster of every child's cycle
+state sorted by urgency, a "Needs attention" queue of rejected/unclear health-form scans
+with a one-tap parent-notify action, and a knowledge-gaps panel grouping the questions
+Cubby couldn't answer by shared theme. Bulk-scan a batch of paper health forms
+underneath — accept/reject-with-fix runs per form, and anything that needs a human
+lands in the queue above instead of disappearing. (Turning a gap into a drafted handbook
+section is the post-submission flywheel — see Post-submission below.)
 
 ## Stack
 
@@ -163,5 +166,6 @@ decision module.
 **Done:** M0.0 scaffold · M0.1 grounded chat · M0.2 health-form vision validation · M0.3
 compliance dashboard + acknowledge · M0.4a access gate + cost circuit-breakers · eval
 harness (moved up — the assignment scores on it directly) · dark/light theme · LangSmith
-tracing. **Next:** gaps panel + deploy. **Post-submission:** Chroma retrieval, SQLite, live
-gap flywheel.
+tracing · M0.4b gaps panel (read-only keyword grouping, no ML — `core/rules/gaps.py`) +
+Dockerfile/Render deploy path. **Post-submission:** Chroma retrieval, SQLite, live gap
+draft → approve → re-index flywheel.

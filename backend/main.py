@@ -24,6 +24,7 @@ from backend.routers import ask as ask_router
 from backend.routers import auth as auth_router
 from backend.routers import compliance as compliance_router
 from backend.routers import forms as forms_router
+from backend.routers import gaps as gaps_router
 
 _DIST = Path(__file__).resolve().parents[1] / "frontend" / "dist"
 
@@ -53,6 +54,7 @@ app.include_router(compliance_router.router, dependencies=[Depends(require_auth)
 # forms_router checks its own budget inside the route (batch size isn't known
 # until the request body is parsed) via check_batch_budget -- see forms.py.
 app.include_router(forms_router.router, dependencies=[Depends(require_auth)])
+app.include_router(gaps_router.router, dependencies=[Depends(require_auth)])
 
 
 @app.get("/api/health")

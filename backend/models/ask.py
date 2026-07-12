@@ -38,3 +38,12 @@ class QuestionLog(BaseModel):
     answer: str | None = None
     thumb: Literal["up", "down"] | None = None
     judge_flag: bool = False              # sampled Sonnet groundedness check failed
+
+
+class GapGroup(BaseModel):
+    """A cluster of GAP-mode questions sharing a keyword (core/rules/gaps.py).
+    Read-only for M0.4b -- no draft/approve action attached yet (that's M3's
+    live flywheel, layered on top of this same grouping)."""
+    theme: str
+    count: int
+    questions: list[QuestionLog]

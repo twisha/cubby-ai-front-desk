@@ -7,6 +7,7 @@ import {
   type FlaggedForm,
 } from "../api";
 import { formatDueDate, chipColors, chipLabel } from "../complianceDisplay";
+import GapsPanel from "./GapsPanel";
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
@@ -144,6 +145,10 @@ export default function Dashboard() {
             </div>
           );
         })}
+      </div>
+
+      <div className="mt-4">
+        <GapsPanel />
       </div>
     </div>
   );
