@@ -1,0 +1,21 @@
+# Optional convenience: Render's "Blueprint" spec, for one-click repeatable
+# setup (New -> Blueprint -> point at this repo). The manual dashboard flow
+# (New -> Web Service -> Docker) works identically without this file.
+services:
+  - type: web
+    name: cubby-ai-front-desk
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false          # set manually in the dashboard -- never committed
+      - key: ACCESS_CODE
+        sync: false          # set manually -- required before sharing the URL publicly
+      - key: LANGSMITH_API_KEY
+        sync: false          # optional; leave unset to disable tracing
+      - key: LANGSMITH_PROJECT
+        value: cubby-ai-front-desk
+      - key: MAX_DAILY_LLM_CALLS
+        value: "300"
+      - key: RATE_LIMIT_PER_MIN
+        value: "20"
