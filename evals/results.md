@@ -1,6 +1,6 @@
 # Cubby Eval Results
 
-**23/27 cases passed.**
+**22/27 cases passed.**
 
 ## Summary
 
@@ -10,8 +10,8 @@
 | MRR | 0.74 |
 | Gap-gate precision | 83% (20/24) |
 | Mode-routing correctness | 88% (23/26) |
-| Groundedness (verdict=yes) | 94% (16/17) |
-| Faithfulness (verdict=pass) | 100% (17/17) |
+| Groundedness (verdict=yes) | 88% (15/17) |
+| Faithfulness (verdict=pass) | 94% (16/17) |
 | Accuracy vs. reference | 100% (17/17) |
 | Judge calibration (mandatory trap) | 100% (1/1) |
 
@@ -27,13 +27,13 @@
 | g06 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
 | g07 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
 | g08 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
-| g09 | grounded | grounded -> grounded | 1 | partial | pass | pass | ❌ groundedness=partial: before they start at Willow Grove |
+| g09 | grounded | grounded -> grounded | 1 | partial | pass | pass | ❌ groundedness=partial: If your child does not have any allergies, no plan is required. |
 | g10 | grounded | grounded -> grounded | 0 | yes | pass | pass | ✅  |
 | g11 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
 | g12 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
 | g13 | grounded | grounded -> grounded | 0 | yes | pass | pass | ✅  |
 | g14 | grounded | grounded -> grounded | 0 | yes | pass | pass | ✅  |
-| g15 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
+| g15 | grounded | grounded -> grounded | 1 | partial | fail | pass | ❌ groundedness=partial: On delays, we open at 9:00am instead of 6:30am.; faithfulness=fail: The answer adds a specific nor |
 | g16 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
 | g17 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
 | j01 | judgment | judgment -> judgment | 1 | yes | pass | pass | ✅  |

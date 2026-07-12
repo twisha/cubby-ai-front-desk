@@ -66,13 +66,13 @@ def _handoff_text(mode: AnswerMode, now: datetime | None = None) -> str:
     if mode is AnswerMode.ESCALATED:
         if open_now:
             return (
-                "This one needs a person, not an app. I've passed it straight to "
-                f"{who} (director) — she'll follow up with you directly."
+                "This needs to go directly to a person — I've flagged it for "
+                f"{who} (director) right away. She'll follow up with you directly."
             )
         return (
-            "This one needs a person, not an app. I've passed it straight to "
-            f"{who} (director) — we're closed right now, so she'll follow up "
-            f"{next_business_day_label(now)}."
+            "This needs to go directly to a person — I've flagged it for "
+            f"{who} (director) right away. We're closed right now, but she'll "
+            f"see this first thing when we reopen {next_business_day_label(now)}."
         )
 
     # GAP
