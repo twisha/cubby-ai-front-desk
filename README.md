@@ -119,8 +119,16 @@ production pipeline — `backend.routers.ask.ask()` called directly as a plain f
 through HTTP, so results have zero drift from what's deployed and the rate limiter/auth
 gate never enter the picture.
 
-Run `python evals/run_evals.py` (needs `ANTHROPIC_API_KEY`). Prints this table and writes
-`evals/results.md`.
+Built in from the start, not bolted on after the fact — a system with a probabilistic
+(LLM) component needs an automated way to catch regressions from day one, the same way
+deterministic code gets tests from day one.
+
+```bash
+set -a && source .env && set +a   # load ANTHROPIC_API_KEY (no --env-file flag for plain python)
+python evals/run_evals.py
+```
+
+Prints this table and writes `evals/results.md`.
 
 | Metric | Result |
 |---|---|
