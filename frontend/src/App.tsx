@@ -3,6 +3,7 @@ import AccessGate from "./AccessGate";
 import { checkAuthStatus } from "./api";
 import Chat from "./parent/Chat";
 import ReminderCard from "./parent/ReminderCard";
+import ChildSwitcher from "./parent/ChildSwitcher";
 import Dashboard from "./operator/Dashboard";
 import ScanForm from "./operator/ScanForm";
 import ThemeToggle from "./ThemeToggle";
@@ -11,6 +12,7 @@ type Tab = "parent" | "operator";
 
 export default function App() {
   const [tab, setTab] = useState<Tab>("parent");
+  const [childId, setChildId] = useState("reyes-sofia");
   // Bumped on an accepted scan so <Dashboard key=...> remounts and refetches
   // without needing a tab switch -- ScanForm and Dashboard share one view.
   const [dashboardKey, setDashboardKey] = useState(0);
@@ -68,7 +70,8 @@ export default function App() {
         {tab === "parent" ? (
           <>
             <Chat />
-            <ReminderCard />
+            <ChildSwitcher value={childId} onChange={setChildId} />
+            <ReminderCard childId={childId} />
           </>
         ) : (
           <>

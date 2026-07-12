@@ -1,12 +1,6 @@
 import { useEffect, useState } from "react";
 import { getCompliance, acknowledge, type ComplianceRow } from "../api";
 
-// Demo has one parent view, no auth; production resolves this from the
-// logged-in parent's session -> their child's roster row. Sofia starts
-// "urgent", so tapping acknowledge produces a visible before/after flip on
-// both tabs — the cross-feature money shot.
-const DEMO_CHILD_ID = "reyes-sofia";
-
 function formatDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d).toLocaleDateString("en-US", { month: "long", day: "numeric" });
@@ -24,19 +18,27 @@ function cycleLabel(months: number): string {
  * records I have (health-report vs. immunization distinction), can I get an
  * extension (acknowledge -> pause, or grace-request if the appt is after the
  * due date), and what's the actual rule (cited).
+ *
+ * No real per-parent auth in this demo — one shared access code for
+ * everyone — so `childId` is a client-side "view as" choice (see
+ * ChildSwitcher), not a login. Acknowledging mutates the one shared
+ * in-memory store, same as every other action in the app.
  */
-export default function ReminderCard() {
+export default function ReminderCard({ childId }: { childId: string }) {
   const [row, setRow] = useState<ComplianceRow | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [apptDate, setApptDate] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    setRow(null);
+    setShowPicker(false);
+    setApptDate("");
     getCompliance().then((rows) => {
-      const mine = rows.find((r) => r.child.id === DEMO_CHILD_ID);
+      const mine = rows.find((r) => r.child.id === childId);
       if (mine) setRow(mine);
     });
-  }, []);
+  }, [childId]);
 
   if (!row || !row.next_due_date) return null;
 
@@ -44,7 +46,7 @@ export default function ReminderCard() {
     if (!apptDate) return;
     setSaving(true);
     try {
-      const updated = await acknowledge(DEMO_CHILD_ID, apptDate);
+      const updated = await acknowledge(childId, apptDate);
       setRow(updated);
       setShowPicker(false);
     } finally {
@@ -61,7 +63,7 @@ export default function ReminderCard() {
     <div className="rounded-2xl p-4 shadow-sm mt-4" style={{ backgroundColor: "var(--cubby-surface)" }}>
       <p className="m-0 text-[15px] leading-snug" style={{ color: "var(--cubby-text)" }}>
         {firstName}'s health report expires <b>{formatDate(row.next_due_date)}</b> (
-        {cycleLabel(row.cycle_months)}, 55 Pa. Code §3270.131(b)). Her next well
+        {cycleLabel(row.cycle_months)}, 55 Pa. Code §3270.131(b)). Their next well
         visit generates the new form.
       </p>
       <p className="m-0 mt-2 text-xs" style={{ color: "var(--cubby-text-muted)" }}>
