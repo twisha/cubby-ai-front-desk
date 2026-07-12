@@ -6,14 +6,21 @@ _NOW resolves to the real clock at import time (server startup), not a
 frozen date -- the gaps panel's "Xh ago" is computed against the actual
 current time, so a hardcoded historical _NOW would only look more stale
 every day this demo gets run, regardless of when that actually is.
+
+Timezone-AWARE (UTC): a naive datetime here would serialize with no zone
+marker, and the browser's `new Date(iso)` parses a zone-less string as
+LOCAL time in the VIEWER's timezone -- not whatever timezone the server
+process happened to be running in. On a server actually running in UTC
+(e.g. Render) viewed from US Eastern, that mismatch showed up as
+"-36m ago" instead of "+204m ago" -- a ~4h skew, exactly the EDT/UTC gap.
 """
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from backend.models.ask import AnswerMode, QuestionLog
 
-_NOW = datetime.now()
+_NOW = datetime.now(timezone.utc)
 
 
 def _ago(minutes: int) -> datetime:

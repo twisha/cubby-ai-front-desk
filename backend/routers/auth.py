@@ -7,7 +7,7 @@ in main.py.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
@@ -39,7 +39,7 @@ def login(
     if not verify_code(req.code):
         raise HTTPException(status_code=401, detail="That code doesn't match — double-check and try again.")
 
-    store.add_visitor(VisitorLogEntry(email=req.email, ts=datetime.now()))
+    store.add_visitor(VisitorLogEntry(email=req.email, ts=datetime.now(timezone.utc)))
     response.set_cookie(
         SESSION_COOKIE_NAME,
         make_session_token(),

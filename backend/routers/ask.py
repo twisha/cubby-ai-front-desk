@@ -12,7 +12,7 @@ Flow (the deterministic spine):
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -60,7 +60,7 @@ def _handoff_text(mode: AnswerMode, now: datetime | None = None) -> str:
     hours; that's exactly the kind of false comfort this app exists to
     eliminate."""
     who = CONFIG.director_name
-    now = now or datetime.now()
+    now = now or datetime.now(timezone.utc)
     open_now = is_business_hours(now)
 
     if mode is AnswerMode.ESCALATED:
@@ -157,7 +157,7 @@ def _log_and_shape(
     needs_human_judgment: bool = False, sensitive: bool = False,
 ) -> AskResponse:
     store.add_question(QuestionLog(
-        id=uuid.uuid4().hex[:8], ts=datetime.now(), text=question, mode=mode,
+        id=uuid.uuid4().hex[:8], ts=datetime.now(timezone.utc), text=question, mode=mode,
         max_cosine=round(max_score, 3), source_ids=[s.id for s in sources],
         answer=answer if mode in (AnswerMode.GROUNDED, AnswerMode.JUDGMENT) else None,
     ))
