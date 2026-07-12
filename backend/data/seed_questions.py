@@ -1,7 +1,11 @@
 """~12 seed question-log entries, varied by mode. Includes three GAP
-questions clustered on the same theme (summer camp) so the gaps panel shows a
-grouped theme with count=3 and an 'Answer this' button -> the draft/approve
-flywheel demo.
+questions clustered on the same theme (summer camp) so the gaps panel
+(core/rules/gaps.py) shows a grouped theme with count=3.
+
+_NOW resolves to the real clock at import time (server startup), not a
+frozen date -- the gaps panel's "Xh ago" is computed against the actual
+current time, so a hardcoded historical _NOW would only look more stale
+every day this demo gets run, regardless of when that actually is.
 """
 from __future__ import annotations
 
@@ -9,7 +13,7 @@ from datetime import datetime, timedelta
 
 from backend.models.ask import AnswerMode, QuestionLog
 
-_NOW = datetime(2026, 7, 11, 9, 0, 0)
+_NOW = datetime.now()
 
 
 def _ago(minutes: int) -> datetime:
