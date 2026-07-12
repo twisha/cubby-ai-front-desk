@@ -50,10 +50,9 @@ app.include_router(
     dependencies=[Depends(require_auth), Depends(enforce_cost_limits)],
 )
 app.include_router(compliance_router.router, dependencies=[Depends(require_auth)])
-app.include_router(
-    forms_router.router,
-    dependencies=[Depends(require_auth), Depends(enforce_cost_limits)],
-)
+# forms_router checks its own budget inside the route (batch size isn't known
+# until the request body is parsed) via check_batch_budget -- see forms.py.
+app.include_router(forms_router.router, dependencies=[Depends(require_auth)])
 
 
 @app.get("/api/health")

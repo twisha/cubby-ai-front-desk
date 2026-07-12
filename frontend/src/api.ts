@@ -64,6 +64,7 @@ export type ReminderTier =
 export interface Child {
   id: string;
   name: string;
+  parent_name: string;
   dob: string;
   last_exam_date: string | null;
   parent_state: ParentState;
@@ -111,14 +112,46 @@ export interface ValidationResult {
   next_due_date: string | null;
 }
 
-export async function validateForm(file: File): Promise<ValidationResult> {
+export interface BatchScanItem {
+  filename: string;
+  child_name: string | null;
+  result: ValidationResult;
+}
+
+/** Bulk scan: one request, any number of photos. Accepted ones update the
+ * roster server-side; rejected/needs_review ones are persisted as
+ * FlaggedForm and surface on the Dashboard's "Needs attention" list. */
+export async function validateForms(files: File[]): Promise<BatchScanItem[]> {
   const body = new FormData();
-  body.append("photo", file);
+  for (const f of files) body.append("photos", f);
   const res = await fetch("/api/validate-form", { method: "POST", body });
   if (!res.ok) {
     const detail = await res.json().catch(() => null);
     throw new Error(detail?.detail ?? `Request failed (${res.status})`);
   }
+  return res.json();
+}
+
+export interface FlaggedForm {
+  id: string;
+  child_id: string | null;
+  child_name: string | null;
+  parent_name: string | null;
+  status: "rejected" | "needs_review";
+  issues: ValidationIssue[];
+  scanned_at: string;
+  notified_at: string | null;
+}
+
+export async function getFlaggedForms(): Promise<FlaggedForm[]> {
+  const res = await fetch("/api/flagged-forms");
+  if (!res.ok) throw new Error(`Request failed (${res.status})`);
+  return res.json();
+}
+
+export async function notifyParent(flagId: string): Promise<FlaggedForm> {
+  const res = await fetch(`/api/flagged-forms/${flagId}/notify`, { method: "POST" });
+  if (!res.ok) throw new Error(`Request failed (${res.status})`);
   return res.json();
 }
 

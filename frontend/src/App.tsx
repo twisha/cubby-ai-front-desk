@@ -13,8 +13,9 @@ type Tab = "parent" | "operator";
 export default function App() {
   const [tab, setTab] = useState<Tab>("parent");
   const [childId, setChildId] = useState("reyes-sofia");
-  // Bumped on an accepted scan so <Dashboard key=...> remounts and refetches
-  // without needing a tab switch -- ScanForm and Dashboard share one view.
+  // Bumped after a batch is processed so <Dashboard key=...> remounts and
+  // refetches without needing a tab switch -- ScanForm and Dashboard share
+  // one view, with Dashboard as the primary one (see App.tsx render below).
   const [dashboardKey, setDashboardKey] = useState(0);
 
   // null = checking; false = show the gate; true = render the app. The
@@ -75,8 +76,8 @@ export default function App() {
           </>
         ) : (
           <>
-            <ScanForm onAccepted={() => setDashboardKey((k) => k + 1)} />
             <Dashboard key={dashboardKey} />
+            <ScanForm onProcessed={() => setDashboardKey((k) => k + 1)} />
           </>
         )}
       </main>

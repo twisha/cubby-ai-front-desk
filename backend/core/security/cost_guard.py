@@ -33,24 +33,34 @@ def _reset_daily_if_needed() -> None:
 
 
 def enforce_cost_limits(request: Request) -> None:
-    """Apply to every LLM-calling route (/ask, /validate-form) — never to
-    pure-CRUD routes like /compliance, which cost nothing to call."""
+    """Apply to single-LLM-call routes (/ask) — never to pure-CRUD routes
+    like /compliance, which cost nothing to call."""
+    ip = request.client.host if request.client else "unknown"
+    check_batch_budget(ip, 1)
+
+
+def check_batch_budget(ip: str, n: int) -> None:
+    """Bulk form scans make N LLM calls in one request — reserve all N
+    upfront so a big batch can't blow past either cap mid-request. Fails
+    CLOSED before any LLM call, same invariant as the single-call path."""
     global _daily_count
     _reset_daily_if_needed()
 
-    if _daily_count >= CONFIG.max_daily_llm_calls:
+    if _daily_count + n > CONFIG.max_daily_llm_calls:
         raise HTTPException(
             status_code=429,
             detail="Daily usage cap reached for this demo — please try again tomorrow.",
         )
 
-    ip = request.client.host if request.client else "unknown"
     current_minute = int(time.time() // 60)
     bucket_minute, count = _minute_buckets[ip]
     if bucket_minute != current_minute:
         bucket_minute, count = current_minute, 0
-    if count >= CONFIG.rate_limit_per_min:
-        raise HTTPException(status_code=429, detail="Too many requests — please slow down.")
+    if count + n > CONFIG.rate_limit_per_min:
+        raise HTTPException(
+            status_code=429,
+            detail="That batch would exceed the per-minute rate limit — try fewer files or wait a moment.",
+        )
 
-    _minute_buckets[ip] = (bucket_minute, count + 1)
-    _daily_count += 1
+    _minute_buckets[ip] = (bucket_minute, count + n)
+    _daily_count += n

@@ -1,52 +1,118 @@
-"""POST /api/validate-form — the front-desk vision-scan flow.
+"""POST /api/validate-form — the bulk front-desk vision-scan flow.
 
-photo -> extract (Sonnet vision) -> match child by name (store) -> validate
-(deterministic) -> on accepted, update the roster, closing the loop back
-into the compliance dashboard/scheduler built in M0.3.
+Each photo -> extract (Sonnet vision) -> match child by name (store) ->
+validate (deterministic). Accepted scans update the roster directly. Rejected
+and needs_review scans are persisted as FlaggedForm so they surface on the
+Dashboard's "Needs attention" list instead of vanishing once the upload
+response is dismissed — the operator's job is to watch the dashboard, not
+review each scan one at a time.
 """
 from __future__ import annotations
 
-from datetime import date
+import uuid
+from datetime import date, datetime, timezone
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 
 from backend.core.llm.extract import extract_form
 from backend.core.rules.validation import validate
+from backend.core.security.cost_guard import check_batch_budget
 from backend.core.store.repo import Store
 from backend.deps import get_store
-from backend.models.forms import ValidationResult
+from backend.models.forms import (
+    BatchScanItem,
+    FlaggedForm,
+    ValidationIssue,
+    ValidationResult,
+)
 
 router = APIRouter(prefix="/api", tags=["forms"])
 
-_MAX_UPLOAD_BYTES = 8 * 1024 * 1024  # 8 MB — upload-safety cap
+_MAX_UPLOAD_BYTES = 8 * 1024 * 1024  # 8 MB per photo — upload-safety cap
+_MAX_BATCH_FILES = 20                 # bounds worst-case cost per request
 
 
-@router.post("/validate-form", response_model=ValidationResult)
+@router.post("/validate-form", response_model=list[BatchScanItem])
 async def validate_form(
-    photo: UploadFile = File(...),
+    request: Request,
+    photos: list[UploadFile] = File(...),
     store: Store = Depends(get_store),
-) -> ValidationResult:
-    if not (photo.content_type or "").startswith("image/"):
-        raise HTTPException(status_code=400, detail="Please upload an image file.")
+) -> list[BatchScanItem]:
+    if len(photos) > _MAX_BATCH_FILES:
+        raise HTTPException(
+            status_code=413, detail=f"Max {_MAX_BATCH_FILES} forms per batch."
+        )
 
-    data = await photo.read()
-    if len(data) > _MAX_UPLOAD_BYTES:
-        raise HTTPException(status_code=413, detail="Image is too large (max 8 MB).")
+    ip = request.client.host if request.client else "unknown"
+    check_batch_budget(ip, len(photos))  # fail CLOSED before any LLM call
 
-    try:
-        extraction = extract_form(data, media_type=photo.content_type)
-    except RuntimeError as e:
-        raise HTTPException(status_code=503, detail=str(e)) from e
+    items: list[BatchScanItem] = []
+    for photo in photos:
+        if not (photo.content_type or "").startswith("image/"):
+            items.append(_skip(photo.filename, "Not an image file.", "Upload a photo of the form."))
+            continue
 
-    child = store.match_child_by_name(extraction.child_name) if extraction.child_name else None
-    result = validate(extraction, child, date.today())
+        data = await photo.read()
+        if len(data) > _MAX_UPLOAD_BYTES:
+            items.append(_skip(photo.filename, "Image is too large (max 8 MB).", "Re-scan under 8 MB."))
+            continue
 
-    if result.status == "accepted" and child is not None:
-        updated = child.model_copy(update={
-            "last_exam_date": extraction.date_of_exam,
-            "parent_state": "compliant",
-            "acknowledged_appt_date": None,
-        })
-        store.upsert_child(updated)
+        try:
+            extraction = extract_form(data, media_type=photo.content_type)
+        except RuntimeError as e:
+            items.append(_skip(photo.filename, str(e), "Re-scan in a moment."))
+            continue
 
-    return result
+        child = store.match_child_by_name(extraction.child_name) if extraction.child_name else None
+        result = validate(extraction, child, date.today())
+
+        if result.status == "accepted" and child is not None:
+            updated = child.model_copy(update={
+                "last_exam_date": extraction.date_of_exam,
+                "parent_state": "compliant",
+                "acknowledged_appt_date": None,
+            })
+            store.upsert_child(updated)
+        else:
+            store.add_flagged_form(FlaggedForm(
+                id=str(uuid.uuid4()),
+                child_id=child.id if child else None,
+                child_name=child.name if child else None,
+                parent_name=child.parent_name if child else None,
+                status=result.status,
+                issues=result.issues,
+                scanned_at=datetime.now(timezone.utc),
+            ))
+
+        items.append(BatchScanItem(
+            filename=photo.filename or "unknown",
+            child_name=child.name if child else extraction.child_name,
+            result=result,
+        ))
+
+    return items
+
+
+def _skip(filename: str | None, problem: str, fix: str) -> BatchScanItem:
+    return BatchScanItem(
+        filename=filename or "unknown",
+        child_name=None,
+        result=ValidationResult(
+            status="needs_review",
+            issues=[ValidationIssue(field="file", problem=problem, fix=fix)],
+            next_due_date=None,
+        ),
+    )
+
+
+@router.get("/flagged-forms", response_model=list[FlaggedForm])
+def flagged_forms(store: Store = Depends(get_store)) -> list[FlaggedForm]:
+    return store.list_flagged_forms()
+
+
+@router.post("/flagged-forms/{flag_id}/notify", response_model=FlaggedForm)
+def notify_parent(flag_id: str, store: Store = Depends(get_store)) -> FlaggedForm:
+    updated = store.mark_notified(flag_id, datetime.now(timezone.utc))
+    if updated is None:
+        raise HTTPException(status_code=404, detail="Flagged form not found")
+    return updated

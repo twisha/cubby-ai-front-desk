@@ -6,7 +6,7 @@ decides accept/reject — it only reports what is visibly on the form.
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel
@@ -47,3 +47,25 @@ class ValidationResult(BaseModel):
     status: Literal["accepted", "rejected", "needs_review"]
     issues: list[ValidationIssue]
     next_due_date: date | None            # computed if accepted
+
+
+class BatchScanItem(BaseModel):
+    """One file's outcome within a bulk /api/validate-form request."""
+    filename: str
+    child_name: str | None                # resolved roster name, or the raw
+                                           # extracted (unmatched) name, if any
+    result: ValidationResult
+
+
+class FlaggedForm(BaseModel):
+    """A rejected/needs_review scan, persisted so it surfaces on the
+    Dashboard instead of disappearing once the upload card is dismissed —
+    the operator's job is to watch the dashboard, not babysit each scan."""
+    id: str
+    child_id: str | None                  # None if the name didn't match anyone
+    child_name: str | None
+    parent_name: str | None               # None if unmatched — no one to notify yet
+    status: Literal["rejected", "needs_review"]
+    issues: list[ValidationIssue]
+    scanned_at: datetime
+    notified_at: datetime | None = None

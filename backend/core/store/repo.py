@@ -5,12 +5,14 @@ SqliteStore behind these exact methods — routers never change.
 """
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Protocol
 
 from backend.data.seed_questions import seed_questions
 from backend.data.seed_roster import seed_children
 from backend.models.ask import QuestionLog
 from backend.models.auth import VisitorLogEntry
+from backend.models.forms import FlaggedForm
 from backend.models.roster import Child
 
 
@@ -23,6 +25,9 @@ class Store(Protocol):
     def add_question(self, q: QuestionLog) -> None: ...
     def add_visitor(self, entry: VisitorLogEntry) -> None: ...
     def list_visitors(self) -> list[VisitorLogEntry]: ...
+    def add_flagged_form(self, f: FlaggedForm) -> None: ...
+    def list_flagged_forms(self) -> list[FlaggedForm]: ...
+    def mark_notified(self, flag_id: str, ts: datetime) -> FlaggedForm | None: ...
 
 
 class InMemoryStore:
@@ -30,6 +35,7 @@ class InMemoryStore:
         self._children: dict[str, Child] = {c.id: c for c in seed_children()}
         self._questions: list[QuestionLog] = list(seed_questions())
         self._visitors: list[VisitorLogEntry] = []
+        self._flagged: dict[str, FlaggedForm] = {}
 
     # --- roster ---
     def list_children(self) -> list[Child]:
@@ -66,3 +72,18 @@ class InMemoryStore:
 
     def list_visitors(self) -> list[VisitorLogEntry]:
         return list(self._visitors)
+
+    # --- flagged (rejected/needs_review) scans -- the Dashboard's queue ---
+    def add_flagged_form(self, f: FlaggedForm) -> None:
+        self._flagged[f.id] = f
+
+    def list_flagged_forms(self) -> list[FlaggedForm]:
+        return sorted(self._flagged.values(), key=lambda f: f.scanned_at, reverse=True)
+
+    def mark_notified(self, flag_id: str, ts: datetime) -> FlaggedForm | None:
+        f = self._flagged.get(flag_id)
+        if f is None:
+            return None
+        updated = f.model_copy(update={"notified_at": ts})
+        self._flagged[flag_id] = updated
+        return updated

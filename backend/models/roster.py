@@ -30,6 +30,7 @@ class ReminderTier(str, Enum):
 class Child(BaseModel):
     id: str
     name: str                             # fictional
+    parent_name: str                      # fictional — who staff notify on a rejected scan
     dob: date
     last_exam_date: date | None
     parent_state: ParentState
