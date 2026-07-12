@@ -4,46 +4,12 @@ import {
   getFlaggedForms,
   notifyParent,
   type ComplianceRow,
-  type ReminderTier,
   type FlaggedForm,
 } from "../api";
-
-function formatDate(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
+import { formatDueDate, chipColors, chipLabel } from "../complianceDisplay";
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-}
-
-// SPEC's 4-chip palette: green/amber/amber-paused/red. The three "due soon"
-// tiers (gentle/standard/urgent) plus paused/grace_requested all share the
-// amber tone — differentiated by label text, not another color.
-function chipColors(tier: ReminderTier): { bg: string; fg: string } {
-  if (tier === "compliant") return { bg: "var(--cubby-green-bg)", fg: "var(--cubby-green)" };
-  if (tier === "overdue") return { bg: "var(--cubby-red-bg)", fg: "var(--cubby-red)" };
-  return { bg: "var(--cubby-amber-bg)", fg: "var(--cubby-amber)" };
-}
-
-function chipLabel(row: ComplianceRow): string {
-  const { tier, days_until_due, child } = row;
-  switch (tier) {
-    case "compliant":
-      return "Compliant";
-    case "overdue":
-      return `Overdue ${Math.abs(days_until_due ?? 0)}d`;
-    case "urgent":
-      return `Urgent — ${days_until_due}d`;
-    case "standard":
-      return `Due soon — ${days_until_due}d`;
-    case "gentle":
-      return `Heads up — ${days_until_due}d`;
-    case "paused":
-      return `Paused — appt ${child.acknowledged_appt_date ? formatDate(child.acknowledged_appt_date) : "?"}`;
-    case "grace_requested":
-      return "Grace requested — needs OK";
-  }
 }
 
 /**
@@ -166,7 +132,7 @@ export default function Dashboard() {
                 </div>
                 <div className="text-xs" style={{ color: "var(--cubby-text-muted)" }}>
                   {r.cycle_months}-month cycle
-                  {r.next_due_date && <> · due {formatDate(r.next_due_date)}</>}
+                  {r.next_due_date && <> · due {formatDueDate(r.next_due_date)}</>}
                 </div>
               </div>
               <span
