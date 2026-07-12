@@ -48,8 +48,43 @@ sections (the draft → approve flywheel).
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env            # fill in ANTHROPIC_API_KEY
+```
+
+The backend serves `/api/*` and the built frontend from one process, but the
+frontend has to actually be built first — `frontend/dist` is gitignored, so a
+fresh clone doesn't have it. Pick one of the two setups below.
+
+**A. Iterating on the frontend (recommended for development)** — two
+terminals, hot reload on every source change, nothing to rebuild by hand:
+
+```bash
+# terminal 1
+uvicorn backend.main:app --reload --env-file .env
+# terminal 2
+cd frontend && npm install && npm run dev
+# open http://localhost:5173  ·  Vite proxies /api/* to :8000
+```
+
+**B. Single process, closer to how it deploys** — build once, then the
+backend alone serves everything on one port:
+
+```bash
+cd frontend && npm install && npm run build && cd ..
 uvicorn backend.main:app --reload --env-file .env
 # open http://127.0.0.1:8000  ·  GET /api/health
+```
+
+With setup B, **any frontend change requires `npm run build` again** before
+it shows up — `--reload` restarts the backend on Python changes, but it
+doesn't know to rebuild the frontend. If you edit frontend code and the UI
+looks unchanged, that stale build is almost always why: rebuild and
+hard-refresh the browser tab.
+
+**C. Docker** — matches the Render deploy (`Dockerfile` builds the frontend
+and serves it from one image):
+
+```bash
+docker build -t cubby . && docker run -p 8000:8000 --env-file .env cubby
 ```
 
 ## Scaling to many centers
