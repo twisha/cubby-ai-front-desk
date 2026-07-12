@@ -20,6 +20,11 @@ from pydantic import BaseModel
 from backend.config import CONFIG
 from backend.core.llm.answer import answer_question
 from backend.core.retrieval.index import Retriever
+from backend.core.rules.business_hours import (
+    HOURS_LABEL,
+    is_business_hours,
+    next_business_day_label,
+)
 from backend.core.rules.routing import detect_sensitive, route
 from backend.core.store.repo import Store
 from backend.deps import get_retriever, get_store
@@ -48,17 +53,38 @@ class AskResponse(BaseModel):
     sensitive: bool = False
 
 
-def _handoff_text(mode: AnswerMode) -> str:
+def _handoff_text(mode: AnswerMode, now: datetime | None = None) -> str:
+    """`now` is accepted explicitly (never reads the clock internally) so
+    this stays trivially unit-testable — same convention as scheduler.py's
+    `today` parameter. Never promise a real-time reply outside business
+    hours; that's exactly the kind of false comfort this app exists to
+    eliminate."""
     who = CONFIG.director_name
+    now = now or datetime.now()
+    open_now = is_business_hours(now)
+
     if mode is AnswerMode.ESCALATED:
+        if open_now:
+            return (
+                "This one needs a person, not an app. I've passed it straight to "
+                f"{who} (director) — she'll follow up with you directly."
+            )
         return (
             "This one needs a person, not an app. I've passed it straight to "
-            f"{who} (director) — she'll follow up with you directly."
+            f"{who} (director) — we're closed right now, so she'll follow up "
+            f"{next_business_day_label(now)}."
         )
+
     # GAP
+    if open_now:
+        return (
+            "I don't have that in the handbook yet — I've sent it to "
+            f"{who} (director). Typical reply is under 15 minutes."
+        )
     return (
         "I don't have that in the handbook yet — I've sent it to "
-        f"{who} (director). Typical reply is under 15 minutes."
+        f"{who} (director). We're closed right now ({HOURS_LABEL}), so she'll "
+        f"get back to you {next_business_day_label(now)}."
     )
 
 
