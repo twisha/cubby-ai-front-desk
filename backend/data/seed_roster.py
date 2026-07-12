@@ -26,12 +26,16 @@ def seed_children() -> list[Child]:
             last_exam_date=date(2025, 8, 12), parent_state="due_soon_acknowledged",
             acknowledged_appt_date=date(2026, 8, 12),
         ),
-        # DUE_SOON_UNRESPONSIVE — standard tier (~30 days).
+        # DUE_SOON_UNRESPONSIVE — standard tier (~30 days). Matches the
+        # cd51_novak_liam_valid_photo.jpg fixture (signed 2026-06-18);
+        # scanning it accepts and flips him to compliant.
         Child(
             id="novak-liam", name="Liam Novak", dob=date(2022, 1, 20),
             last_exam_date=date(2025, 8, 5), parent_state="due_soon_unresponsive",
         ),
-        # DUE_SOON_UNRESPONSIVE — urgent tier (~14 days).
+        # DUE_SOON_UNRESPONSIVE — urgent tier (~14 days). Also the Parent-tab
+        # ReminderCard demo child. Matches cd51_reyes_sofia_valid_photo.jpg
+        # (signed 2026-06-25); scanning it accepts and flips her to compliant.
         Child(
             id="reyes-sofia", name="Sofia Reyes", dob=date(2023, 2, 10),
             last_exam_date=date(2025, 7, 25), parent_state="due_soon_unresponsive",
