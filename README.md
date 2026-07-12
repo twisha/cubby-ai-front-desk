@@ -73,6 +73,51 @@ seams, not a rewrite:
 At one small handbook, full-context grounding is enough; at N centers × multi-page docs
 it isn't — which is why real retrieval lives behind the `Retriever` seam from day one.
 
+## Quality & evals
+
+Generator (Haiku, the live answer engine) != judge (Sonnet, `core/llm/judge.py`) — never
+the same model grading itself. `evals/golden_set.jsonl` (27 cases) runs against the real
+production pipeline — `backend.routers.ask.ask()` called directly as a plain function, not
+through HTTP, so results have zero drift from what's deployed and the rate limiter/auth
+gate never enter the picture.
+
+Run `python evals/run_evals.py` (needs `ANTHROPIC_API_KEY`). Prints this table and writes
+`evals/results.md`.
+
+| Metric | Result |
+|---|---|
+| Recall@4 (retrieval readiness) | 0.80 |
+| MRR | 0.74 |
+| Gap-gate precision | 83% (20/24) |
+| Mode-routing correctness | 88% (23/26) |
+| Groundedness | 94% (16/17) |
+| Faithfulness | 100% (17/17) |
+| Accuracy vs. reference | 100% (17/17) |
+| Judge calibration (mandatory trap) | 100% (1/1) |
+
+**23/27 passed — every failure is explained, not hand-waved:**
+
+- **3 retrieval misses** (late-pickup, "threw up," "rash") — the M0 `KeywordRetriever` does
+  exact-token matching with no stemming, so "picking up" never matches "pickup." This is
+  exactly the question Recall@4/MRR exist to answer: retrieval alone **isn't yet safe to
+  trust**, which is why real embeddings (M1) sit behind the `Retriever` seam instead of
+  touching decision code. One near-miss ("bring my dog to pickup," score 0.333, above
+  threshold) shows the defense-in-depth working anyway: the gate let it through, but the
+  model's own empty `source_ids` still routed it to GAP.
+- **1 reproducible groundedness miss** — asked about an allergy plan, Haiku consistently
+  (4/4 runs) adds "if your child has no allergies, none is needed" — correct and helpful,
+  but an *unstated* inverse of the handbook's literal rule. A prompt fix naming this exact
+  case verbatim didn't change the behavior. That's the honest finding: not a bug to patch
+  away, but why groundedness needs to be an ongoing automated check, not a one-time prompt
+  fix — the same habit could silently assert something false against a less symmetric rule.
+- **The mandatory faithfulness-calibration case passes** — a hardcoded answer omitting
+  "without fever-reducing medication" is correctly flagged `fail`, proving the judge has
+  real discriminating power.
+- **A real judge bug was found and fixed here**: the faithfulness judge originally didn't
+  receive the question, so it flagged any answer that didn't restate the entire source
+  section — failing "we close at 6pm" for not repeating the opening time. Passing the
+  question through fixed it.
+
 ## How it's built
 
 Modular, individually committed increments — the app boots and demos at every commit.
@@ -80,6 +125,8 @@ Two seams make later work one-file swaps: `Retriever` (keyword → Chroma) and `
 (in-memory → SQLite), so a retrieval or persistence upgrade never touches a router or a
 decision module.
 
-**M0.0** scaffold · **M0.1** grounded chat · **M0.2** health-form vision validation ·
-**M0.3** compliance dashboard + acknowledge · **M0.4** gaps panel + access gate + deploy.
-Post-submission: M1 Chroma retrieval · M2 SQLite · M3 live gap flywheel · M4 eval harness.
+**Done:** M0.0 scaffold · M0.1 grounded chat · M0.2 health-form vision validation · M0.3
+compliance dashboard + acknowledge · M0.4a access gate + cost circuit-breakers · eval
+harness (moved up — the assignment scores on it directly) · dark/light theme · LangSmith
+tracing. **Next:** gaps panel + deploy. **Post-submission:** Chroma retrieval, SQLite, live
+gap flywheel.

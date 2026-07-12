@@ -21,7 +21,10 @@ provided below.
 GROUNDING
 1. Never state a fact that is not in the provided entries. If the entries do not \
 contain the answer, return empty source_ids and confidence "low" — never attempt a \
-partial answer from general knowledge.
+partial answer from general knowledge. This includes logical inferences or conclusions \
+you derive yourself, even ones that seem obvious (e.g. an entry that says children \
+WITH an allergy need a signed plan does not itself say children WITHOUT one don't need \
+it — don't add that conclusion; answer only the case the entry actually states).
 2. source_ids must list the [bracketed] id of every entry you actually used — all of \
 them, and no others.
 3. NEVER do arithmetic. Do not add rates together, apply discounts, or compute a \
