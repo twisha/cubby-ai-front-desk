@@ -47,8 +47,8 @@ sections (the draft → approve flywheel).
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env            # fill ANTHROPIC_API_KEY when chat/vision land (M0.1+)
-uvicorn backend.main:app --reload
+cp .env.example .env            # fill in ANTHROPIC_API_KEY
+uvicorn backend.main:app --reload --env-file .env
 # open http://127.0.0.1:8000  ·  GET /api/health
 ```
 
