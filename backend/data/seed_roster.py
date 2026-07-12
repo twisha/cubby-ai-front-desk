@@ -21,6 +21,9 @@ def seed_children() -> list[Child]:
             last_exam_date=date(2025, 6, 20), parent_state="overdue",
         ),
         # DUE_SOON_ACKNOWLEDGED — the paused-reminders badge. appt <= due.
+        # Also the "bad scan" demo child: cd51_name_unclear_photo.jpg has an
+        # illegible scribble in the name field (everything else on the form
+        # is valid) -> needs_review, isolated to just the name issue.
         Child(
             id="okafor-aisha", name="Aisha Okafor", dob=date(2021, 3, 2),
             last_exam_date=date(2025, 8, 12), parent_state="due_soon_acknowledged",
