@@ -11,7 +11,7 @@ import os
 from functools import lru_cache
 from typing import TypeVar
 
-from langsmith import traceable
+from langsmith import get_current_run_tree, traceable
 from pydantic import BaseModel
 
 from backend.config import CONFIG
@@ -75,6 +75,21 @@ def parse_structured(
         messages=[{"role": "user", "content": content}],
         output_format=schema,
     )
+
+    # Tokens/cost don't show up on the LangSmith run for free: @traceable
+    # only sees this function's return value (the parsed Pydantic model),
+    # not the raw API response `resp` that actually carries `.usage`. Attach
+    # it to the active run's metadata under the "usage_metadata" key, which
+    # is the exact key langsmith/run_helpers.py's _extract_usage() looks for
+    # (confirmed by reading it) — no-ops harmlessly if tracing is off.
+    run = get_current_run_tree()
+    if run is not None:
+        run.metadata["usage_metadata"] = {
+            "input_tokens": resp.usage.input_tokens,
+            "output_tokens": resp.usage.output_tokens,
+            "total_tokens": resp.usage.input_tokens + resp.usage.output_tokens,
+        }
+
     parsed = resp.parsed_output
     if parsed is None:  # refusal or unparseable
         raise RuntimeError(f"Model returned no parseable {schema.__name__}")
