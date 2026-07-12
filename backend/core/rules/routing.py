@@ -47,6 +47,30 @@ def detect_sensitive(question: str) -> bool:
     return any(phrase in q for phrase in _SENSITIVE_PHRASES)
 
 
+# Pure conversational closers ("thank you", "ok", "got it") carry no
+# handbook content to retrieve, so without this check they fall through the
+# gap gate and get the SAME "I've sent this to the director" handoff as a
+# real unanswered question -- confusing after a normal exchange. Whole-
+# message match only (after stripping case/punctuation), so a real question
+# that happens to start with "thanks, but..." still routes normally instead
+# of being swallowed here.
+_COURTESY_PHRASES: frozenset[str] = frozenset({
+    "thank you", "thanks", "ty", "thx", "thank you so much", "thanks so much",
+    "thanks a lot", "much appreciated", "appreciate it", "appreciate it thanks",
+    "ok", "okay", "got it", "gotcha", "sounds good", "sounds good thanks",
+    "great", "great thanks", "perfect", "perfect thanks", "cool", "cool thanks",
+    "awesome", "alright", "no problem", "great thank you",
+})
+
+
+def detect_courtesy(question: str) -> bool:
+    """See _COURTESY_PHRASES. Deterministic, whole-message match — never an
+    LLM classification, so it costs nothing and never misfires on a real
+    question embedding one of these words."""
+    normalized = question.strip().lower().rstrip("!.,")
+    return normalized in _COURTESY_PHRASES
+
+
 def route(resp: AnswerResponse) -> AnswerMode:
     """Map an AnswerResponse to a UI mode. Order matters — first match wins.
 

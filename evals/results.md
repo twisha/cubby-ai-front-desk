@@ -27,7 +27,7 @@
 | g06 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
 | g07 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
 | g08 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
-| g09 | grounded | grounded -> grounded | 1 | partial | pass | pass | ❌ groundedness=partial: If your child has no known allergies, an allergy plan is not required, and if unsure, reach out to |
+| g09 | grounded | grounded -> grounded | 1 | partial | pass | pass | ❌ groundedness=partial: before they start at Willow Grove |
 | g10 | grounded | grounded -> grounded | 0 | yes | pass | pass | ✅  |
 | g11 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
 | g12 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |

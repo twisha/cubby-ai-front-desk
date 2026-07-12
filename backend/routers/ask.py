@@ -25,7 +25,7 @@ from backend.core.rules.business_hours import (
     is_business_hours,
     next_business_day_label,
 )
-from backend.core.rules.routing import detect_sensitive, route
+from backend.core.rules.routing import detect_courtesy, detect_sensitive, route
 from backend.core.store.repo import Store
 from backend.deps import get_retriever, get_store
 from backend.models.ask import AnswerMode, QuestionLog
@@ -95,6 +95,16 @@ def ask(
     store: Store = Depends(get_store),
 ) -> AskResponse:
     question = req.question.strip()
+
+    # Pure courtesy ("thank you", "ok") -- answer directly, never hand off to
+    # the director or spend an LLM call. Checked before the sensitive-topic
+    # pre-check since the two categories can't overlap.
+    if detect_courtesy(question):
+        return _log_and_shape(
+            store, question, AnswerMode.GROUNDED, 1.0,
+            answer="You're welcome! Let me know if you have any other questions.",
+            sources=[],
+        )
 
     # Sensitive-topic pre-check runs BEFORE retrieval. Custody/injury/abuse/
     # staff-complaint/billing-dispute questions have ~zero handbook content
