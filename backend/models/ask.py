@@ -40,10 +40,22 @@ class QuestionLog(BaseModel):
     judge_flag: bool = False              # sampled Sonnet groundedness check failed
 
 
+class GapCategory(str, Enum):
+    """Read-only classification computed at reporting time in
+    core/rules/gaps.py. Never touches AnswerMode or the parent-facing
+    response -- it's purely a sharper lens the operator gets over the same
+    GAP-mode question log, so a genuine content gap doesn't get buried next
+    to gibberish or an off-topic question the handbook could never answer."""
+    CONTENT_GAP = "content_gap"           # coherent, plausibly in-domain -- actionable
+    OFF_TOPIC = "off_topic"               # coherent English, unrelated to a childcare center
+    UNCLEAR = "unclear"                   # not real language (or too little signal to tell)
+
+
 class GapGroup(BaseModel):
     """A cluster of GAP-mode questions sharing a keyword (core/rules/gaps.py).
     Read-only for M0.4b -- no draft/approve action attached yet (that's M3's
     live flywheel, layered on top of this same grouping)."""
     theme: str
+    category: GapCategory
     count: int
     questions: list[QuestionLog]

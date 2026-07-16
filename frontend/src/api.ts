@@ -112,8 +112,14 @@ export interface QuestionLog {
   answer: string | null;
 }
 
+// Computed read-only at reporting time in backend/core/rules/gaps.py --
+// never touches AnswerMode or the parent-facing response, only how the
+// operator's gaps panel groups the same GAP-mode question log.
+export type GapCategory = "content_gap" | "off_topic" | "unclear";
+
 export interface GapGroup {
   theme: string;
+  category: GapCategory;
   count: number;
   questions: QuestionLog[];
 }
