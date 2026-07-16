@@ -1,6 +1,6 @@
 # Cubby Eval Results
 
-**23/27 cases passed.**
+**24/27 cases passed.**
 
 ## Summary
 
@@ -10,7 +10,7 @@
 | MRR | 0.74 |
 | Gap-gate precision | 83% (20/24) |
 | Mode-routing correctness | 88% (23/26) |
-| Groundedness (verdict=yes) | 94% (16/17) |
+| Groundedness (verdict=yes) | 100% (17/17) |
 | Faithfulness (verdict=pass) | 100% (17/17) |
 | Accuracy vs. reference | 100% (17/17) |
 | Judge calibration (mandatory trap) | 100% (1/1) |
@@ -27,7 +27,7 @@
 | g06 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
 | g07 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
 | g08 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
-| g09 | grounded | grounded -> grounded | 1 | partial | pass | pass | ❌ groundedness=partial: Let us know at enrollment if your child has any allergies. |
+| g09 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
 | g10 | grounded | grounded -> grounded | 0 | yes | pass | pass | ✅  |
 | g11 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |
 | g12 | grounded | grounded -> grounded | 1 | yes | pass | pass | ✅  |

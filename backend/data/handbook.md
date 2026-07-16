@@ -71,3 +71,7 @@ Two weeks' written notice is required for withdrawal or schedule changes. The de
 ## snow-closures
 category: schedule
 We follow Wissahocken Area School District weather closures. On delays we open at 9:00am. Notifications go out via the app by 5:45am. There is no tuition credit for weather days.
+
+## family-contact-privacy
+category: operations
+We never share one family's contact information (phone number, email, or home address) with another family or with anyone outside our staff, under any circumstances. If you need to reach another family — for a playdate or similar — ask the front desk to pass along a message on your behalf.

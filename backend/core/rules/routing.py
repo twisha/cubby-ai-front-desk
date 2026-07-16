@@ -84,9 +84,27 @@ def route(resp: AnswerResponse) -> AnswerMode:
 
     The sub-threshold GAP (retrieval found nothing) is decided BEFORE the LLM is
     called, in the router; this function handles everything after the model ran.
+
+    `resp.source_ids` has already been filtered against real handbook ids by the
+    time this runs (see ask.py) — a hallucinated citation can't buy the branch
+    below, only a genuinely grounded one can.
     """
     if resp.sensitive:
-        return AnswerMode.ESCALATED           # custody/injury/abuse/billing/staff — no AI answer
+        # Two different reasons a topic gets flagged sensitive, and they don't
+        # deserve the same treatment. Custody, injury, abuse, staff complaints,
+        # billing disputes have no safe generic answer -- the handbook correctly
+        # has no grounded content for them, so nothing survives citation
+        # filtering, and full human handoff is right (no AI answer shown).
+        # A privacy-boundary question ("what's another family's contact info")
+        # is different: the correct answer is always the same firm, safe
+        # refusal, and the handbook can state that refusal directly. If the
+        # model produced a real, validated, confident citation for a sensitive
+        # question, the answer itself is a boundary-setting refusal, not a
+        # disclosure -- showing it (with staff still flagged, same as a
+        # judgment call) beats discarding a safe answer for zero safety gain.
+        if resp.source_ids and resp.confidence != "low":
+            return AnswerMode.JUDGMENT
+        return AnswerMode.ESCALATED            # no grounded answer exists — no AI answer
     if resp.needs_human_judgment:
         return AnswerMode.JUDGMENT            # policy answerable, the decision isn't
     if not resp.source_ids or resp.confidence == "low":
