@@ -15,6 +15,7 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
+from langsmith import get_current_run_tree, traceable
 from pydantic import BaseModel
 
 from backend.config import CONFIG
@@ -94,8 +95,24 @@ def ask(
     retriever: Retriever = Depends(get_retriever),
     store: Store = Depends(get_store),
 ) -> AskResponse:
-    question = req.question.strip()
+    return _ask(req.question.strip(), retriever, store)
 
+
+def _trace_inputs(inputs: dict) -> dict:
+    """Only the question is a meaningful trace input — retriever/store are
+    long-lived singletons, not per-call data, and aren't safely serializable."""
+    return {"question": inputs.get("question")}
+
+
+@traceable(name="ask", run_type="chain", process_inputs=_trace_inputs)
+def _ask(question: str, retriever: Retriever, store: Store) -> AskResponse:
+    """Every question gets a LangSmith trace, even the ones that never reach
+    the LLM — courtesy, the sensitive pre-check, and the sub-threshold gap
+    gate are deterministic-code decisions by design (see routing.py), but an
+    operator watching for questions the system struggled with still needs to
+    see them. `_log_and_shape` tags this run with mode + sensitive on every
+    branch, so filtering by tag in LangSmith surfaces ESCALATED/GAP questions
+    whether or not a model call happened underneath."""
     # Pure courtesy ("thank you", "ok") -- answer directly, never hand off to
     # the director or spend an LLM call. Checked before the sensitive-topic
     # pre-check since the two categories can't overlap.
@@ -171,6 +188,20 @@ def _log_and_shape(
         max_cosine=round(max_score, 3), source_ids=[s.id for s in sources],
         answer=answer if mode in (AnswerMode.GROUNDED, AnswerMode.JUDGMENT) else None,
     ))
+
+    # Tag the enclosing `ask` run (see _ask_traced) so GAP/ESCALATED/JUDGMENT
+    # questions are filterable in LangSmith by tag regardless of whether an
+    # LLM call happened underneath this run — a no-op if tracing is disabled.
+    run = get_current_run_tree()
+    if run is not None:
+        tags = [f"mode:{mode.value}"]
+        if sensitive:
+            tags.append("sensitive")
+        run.add_tags(tags)
+        run.add_metadata({
+            "mode": mode.value, "max_score": round(max_score, 3), "sensitive": sensitive,
+        })
+
     return AskResponse(
         answer=answer, mode=mode, confidence=confidence, sources=sources,
         max_score=round(max_score, 3), needs_human_judgment=needs_human_judgment,
