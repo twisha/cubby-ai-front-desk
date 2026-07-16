@@ -8,10 +8,11 @@ from __future__ import annotations
 
 from backend.models.ask import AnswerMode, AnswerResponse
 
-# Deterministic pre-check for the SPEC's five sensitive categories: custody /
-# release authorization, injury, abuse or neglect, staff complaints, billing
-# disputes, another family's child. Phrase-scoped (not single words like
-# "father") to avoid false-positiving ordinary logistics questions.
+# Deterministic pre-check for six sensitive categories: custody / release
+# authorization, injury, abuse or neglect, staff complaints, billing
+# disputes, another family's child, and a child's personal identifying
+# information. Phrase-scoped (not single words like "father") to avoid
+# false-positiving ordinary logistics questions.
 #
 # WHY THIS EXISTS: these topics by design have ~zero content-word overlap with
 # the handbook (the handbook correctly does not discuss custody), so the
@@ -36,6 +37,13 @@ _SENSITIVE_PHRASES: tuple[str, ...] = (
     # another family's child
     "another child", "someone else's child", "another family's child",
     "other parent's child",
+    # a child's personal identifying information — narrowly scoped to
+    # identity-theft-risk fields (SSN, government/insurance ID numbers), not
+    # DOB or address, which come up in ordinary enrollment/compliance
+    # questions ("my daughter's date of birth is...") and would false-positive
+    "social security", "ssn", "social security number",
+    "driver's license", "drivers license", "passport number",
+    "medicaid number", "insurance id number",
 )
 
 
