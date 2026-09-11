@@ -19,7 +19,7 @@ form is compliant — code does.
 
 This is enforced structurally: `backend/core/llm/` returns Pydantic and imports no
 decision code; `backend/core/rules/` (routing, validation, scheduler) is pure functions
-and imports no Anthropic client. A reviewer can grep to verify the boundary holds.
+and imports no Anthropic client. Anyone can grep to verify the boundary holds.
 
 ## What it does
 
@@ -33,7 +33,7 @@ with a one-tap parent-notify action, and a knowledge-gaps panel grouping the que
 Cubby couldn't answer by shared theme. Bulk-scan a batch of paper health forms
 underneath — accept/reject-with-fix runs per form, and anything that needs a human
 lands in the queue above instead of disappearing. (Turning a gap into a drafted handbook
-section is the post-submission flywheel — see Post-submission below.)
+section is the next flywheel step — see Next below.)
 
 ## Stack
 
@@ -173,7 +173,7 @@ decision module.
 
 **Done:** M0.0 scaffold · M0.1 grounded chat · M0.2 health-form vision validation · M0.3
 compliance dashboard + acknowledge · M0.4a access gate + cost circuit-breakers · eval
-harness (moved up — the assignment scores on it directly) · dark/light theme · LangSmith
-tracing · M0.4b gaps panel (read-only keyword grouping, no ML — `core/rules/gaps.py`) +
-Dockerfile/Render deploy path. **Post-submission:** Chroma retrieval, SQLite, live gap
-draft → approve → re-index flywheel.
+harness (moved up — response quality is the thing this project is about) · dark/light
+theme · LangSmith tracing · M0.4b gaps panel (read-only keyword grouping, no ML —
+`core/rules/gaps.py`) + Dockerfile/Render deploy path. **Next:** Chroma retrieval,
+SQLite, live gap draft → approve → re-index flywheel.
